@@ -1,0 +1,17 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "3.0.0rc4",
+    "jade": "*",
+		"mysql": "2.0.0-alpha",
+		"generic-pool": "2.0.1",
+		"share": "https://github.com/booo/ShareJS/archive/v0.5.0.tar.gz",
+		"socket.io": "*",
+		"async": "*"
+  }
+}

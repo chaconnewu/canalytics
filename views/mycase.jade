@@ -1,0 +1,81 @@
+extends layout
+
+block append head
+	link(rel="stylesheet", href="/stylesheets/castyle.css")
+	link(rel="stylesheet", href="/stylesheets/jquery-ui-1.10.1.custom.min.css")
+	link(rel="stylesheet", href="/stylesheets/chosen.css")
+	link(rel="stylesheet", href="/stylesheets/fullcalendar.css")
+	link(rel="stylesheet", href="/stylesheets/events.css")
+	link(rel="stylesheet", href="/stylesheets/dhtmlxscheduler_dhx_terrace.css")
+	link(rel="stylesheet", href="/stylesheets/annotator.min.css")
+	link(rel="stylesheet", href="/stylesheets/d3graph.css")
+	script(src="http://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/md5.js")
+	script(src="/javascripts/jquery-ui-1.10.1.custom.min.js")
+	script(src="/javascripts/jquery-ui-timepicker-addon.js")
+	script(src="/javascripts/chosen.jquery.min.js")
+	script(src="/javascripts/fullcalendar.js")
+	script(src="/javascripts/cacalendar.js")
+	script(src="/javascripts/jquery.balloon.js")
+	script(src="/javascripts/dhtmlxcommon.js")
+	script(src="/javascripts/dhtmlxcontainer.js")
+	script(src="/javascripts/dhtmlxscheduler.js")
+	script(src="/javascripts/dhtmlxscheduler_dhx_terrace.js")
+	script(src="/javascripts/dhtmlxscheduler_units.js")
+	script(src="/socket.io/socket.io.js")
+	script(src="/javascripts/ca.js")
+	script(src="/javascripts/windows.js")
+	script(src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBIL6BEuH3DL94kt_uAyUCQvAD4q5cieEc&sensor=false")
+	script(src="http://d3js.org/d3.v2.min.js")
+	script(src="/javascripts/camap.js")
+	script(src="/javascripts/cagraph.js")
+	script(src="/javascripts/capeople.js")
+
+block content
+	#container.centerpanel
+	div.left.sidepanel
+		div.leftslidingmenu
+			div.top_left_banner
+				h1= title
+			#nav_panel
+				ul#accordion
+					li
+						a.heading(href='#documents') Documents
+						ul#documents
+							- each doc in doclist
+								li
+									a(href='/files/#{doc.title}/#{doc.title}.html', onclick="return caWindows.openWindow(this, '#{doc.uuid}', '#{doc.title}', 'annotation');") #{doc.title}
+					li
+						a.heading(href='#maps') Maps
+						ul#maps
+							- each map in maplist
+								li
+									a(href="#", onclick="return caWindows.openWindow(this, '#{map.id}', '#{map.title}', 'map');") #{map.title}
+					li
+						a.heading(href='#Calendar') Calendar
+						ul#calendar
+							- each cal in callist
+								li
+									a(href="/calendars/#{cal.id}", onclick="caWindows.openWindow(this, '#{cal.id}', '#{cal.title}', 'cal'); return false;") #{cal.title}
+					li
+						a.heading(href='Graphs') Graphs
+						ul#graphs
+							- each graph in graphlist
+								li
+									a(href="/graphs/#{graph.id}", onclick="caWindows.openWindow(this, '#{graph.id}', '#{graph.title}', 'graph'); return false;") #{graph.title}
+					li
+						a.heading(href='notepads') Notepads
+						ul#notepads
+							li
+								a(href="#", onclick="return caWindows.openWindow(this, null, 'canotepad');") Notepad I
+		a.lefttrigger(href="#")
+	div.right.sidepanel
+		div.rightslidingmenu
+			span #{username} #{uid}
+		a.righttrigger(href="#")
+	script
+		account = "#{username}"
+		accountId = "#{uid}"
+		caseName = "#{title}"
+		cid = "#{cid}"
+		gid = "#{graphlist[0].id}"
+	script(src='/javascripts/socketevents.js')

@@ -58,27 +58,27 @@ socket.on('DBAnnotationUpdated', function(data){
 // our client through this event with a relevant data
 socket.on('DBEventUpdated', function(data){
 	var el = $("#"+data.el);
-  var e = el.fullCalendar('clientEvents', data.id);
+	var results = data.results;
+  var e = el.fullCalendar('clientEvents', results[0].id);
 
 	if(e.length > 0) {
-		for(var i=0;i<e.length; i++){
-			$.extend(e[i], data);
-			e[i] = validateEvent(e[i]);
-			el.fullCalendar( 'updateEvent', e[i]);
-		};
+		for(var i=0; i<e.length; i++){
+			$.extend(e[i], results[0]);
+		  _this.el.fullCalendar( 'updateEvent', e[i]);
+		}
 	} else {
-		el.fullCalendar( 'renderEvent', data, true);
+		el.fullCalendar( 'renderEvent', results[0]);
 	}
-	if(data.people){
+	if(results[0].people){
 		for(var i in data.people) {
-			if(capeople.people_list.indexOf(data.people[i]) == -1){
-				capeople.people_list.push(data.people[i]);
+			if(capeople.people_list.indexOf(results[0].people[i]) == -1){
+				capeople.people_list.push(results[0].people[i]);
 			}
 		}
 	}
-	if(data.relationship&&data.relationship!=''){
-		if(capeople.relation_list.indexOf(data.relationship) == -1){
-			capeople.relation_list.push(data.relationship);
+	if(results[0].relationship&&results[0].relationship!=''){
+		if(capeople.relation_list.indexOf(results[0].relationship) == -1){
+			capeople.relation_list.push(results[0].relationship);
 		}
 	}
 	

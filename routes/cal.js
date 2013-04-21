@@ -1,26 +1,28 @@
 var pool = require('../dbpool.js');
+var async = require('async');
 
-exports.read = function(req, res){
-	if(typeof req.session.username === "undefined") {
+exports.read = function(req, res) {
+	if (typeof req.session.username === "undefined") {
 		res.redirect('/');
 	} else {
-		pool.acquire(function(err, conn){
-			if(err){
-				pool.release(conn);
-			}else{
-				conn.query("SELECT ca_events.id, ca_events.title, ca_events.start, ca_events.end, ca_events.repeat, ca_events.interval, ca_events.end_after, GROUP_CONCAT(ca_people.name) as people, ca_relationships.relationship FROM ca_events LEFT JOIN ca_relationships ON ca_events.ca_relationships_id = ca_relationships.id LEFT JOIN ca_people ON ca_relationships.id = ca_people.ca_relationships_id where ca_calendars_id = '" + req.params.id + "' GROUP BY ca_events.id", function(err, results){
+		pool.getConnection(function(err, conn) {
+			if (err) {
+				throw err;
+				conn.end();
+			} else {
+				conn.query("SELECT ca_events.id, ca_events.title, ca_events.start, ca_events.end, ca_events.rrepeat, ca_events.rinterval, ca_events.end_after, ca_events.rindex, ca_events.repeating, GROUP_CONCAT(ca_people.name) as people, ca_relationships.relationship FROM ca_events LEFT JOIN ca_relationships ON ca_events.ca_relationships_id = ca_relationships.id LEFT JOIN ca_people ON ca_relationships.id = ca_people.ca_relationships_id where ca_calendars_id = '" + req.params.id + "' GROUP BY ca_events.id, ca_events.rindex", function(err, results) {
 					var event_list = [];
-					
-					if(err) throw err;
-					if(results.length > 0) {
-						if(results.people){
-							for(var i=0; i<results.length; i++){
+
+					if (err) throw err;
+					if (results.length > 0) {
+						if (results.people) {
+							for (var i = 0; i < results.length; i++) {
 								results[i].people = results[i].people.split(",");
 							}
 						}
 						event_list = results;
 					}
-					pool.release(conn);
+					conn.end();
 					res.send(event_list);
 				})
 			}
@@ -29,45 +31,48 @@ exports.read = function(req, res){
 };
 
 exports.create = function(req, res) {
-	var cols = ['id','title','start','end','repeat','interval','end_after','ca_calendars_id','ca_calendars_ca_cases_id','index','repeating'];
-	if(typeof req.session.username === "undefined") {
+	var cols = ['id', 'title', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'ca_calendars_id', 'ca_calendars_ca_cases_id', 'rindex', 'repeating'];
+	if (typeof req.session.username === "undefined") {
 		res.redirect('/');
 	} else {
-		pool.acquire(function(err, conn){
-			if(err){
-				pool.release(conn);
-			}else{
-				var qs = {};
-				Object.keys(req.body).forEach(function(key){
-					if(cols.indexOf(key) > -1) qs[key] = req.body[key];
-				});
-				conn.query('INSERT INTO ca_events SET ?', qs,
-				function(err, result){
-					if(err) throw err;
-					
-					if(req.body.relationship && req.body.relationship!='') {
+		var qs = {};
+		Object.keys(req.body).forEach(function(key) {
+			if (cols.indexOf(key) > -1) qs[key] = req.body[key];
+		});
+		async.series({
+			createEvent: function(callback) {
+				pool.getConnection(function(err, conn) {
+					conn.query('INSERT INTO ca_events SET?', qs, function(err, result) {
+						conn.end();
+						callback(err, result);
+					})
+				})
+			},
+			createRelationship: function(callback) {
+				if (req.body.relationship && req.body.relationship != 0) {
+					pool.getConnection(function(err, conn) {
 						conn.query('INSERT INTO ca_relationships SET ?', {
 							relationship: req.body.relationship,
 							ca_graphs_id: req.body.gid,
 							ca_graphs_ca_cases_id: req.body.ca_calendars_ca_cases_id,
 							ca_events_id: req.body.id
 						}, function(err, result) {
-							if(err) throw err;
+							if (err) throw err;
 
 							var rid = result.insertId;
 							var values = '';
 
-							for(var i in req.body.people) {
+							for (var i in req.body.people) {
 								values = values + "('" + req.body.people[i] + "', " + rid + ", '" + req.body.gid + "', " + req.body.ca_calendars_ca_cases_id + "),";
 							}
-							if(values[values.length-1] == ",") {
+							if (values[values.length - 1] == ",") {
 								values = values.slice(0, -1);
 							}
 							conn.query('INSERT INTO ca_people (name, ca_relationships_id, ca_relationships_ca_graphs_id, ca_relationships_ca_graphs_ca_cases_id) VALUES ' + values, function(err, result) {
-								if(err) throw err;
-								
+								if (err) throw err;
+
 								var r_insert = [];
-								for(var i in req.body.people) {
+								for (var i in req.body.people) {
 									var r = {};
 									r.id = rid;
 									r.name = req.body.people[i];
@@ -75,216 +80,249 @@ exports.create = function(req, res) {
 									r_insert.push(r);
 								}
 								req.body.r_insert = r_insert;
-								
-								conn.query('UPDATE ca_events SET ca_relationships_id = ' + rid + ' WHERE id = "' + req.body.id + '"', function(err, result){
-									if(err) throw err;
-									
-									//process repeating event
-									if(req.body.repeating == true){
-										var repeat = parseInt(req.body.repeat);
-										var interval = req.body.interval;
-										var end_after = new Date(req.body.end_after);
-										var start = new Date(req.body.start);
-										var end_after_s = end_after.getTime();
-										var start_s = start.getTime();
-										var interval_s = 0;
-										switch(interval){
-											case 'day':
-												interval_s = 86400000;
-												break;
-											case 'week':
-												interval_s = 604800000;
-												break;
-											case 'month':
-												interval_s = 2592000000;
-												break;
-										}
 
-										var freq = Math.floor((end_after_s - start_s)/(repeat*interval_s));
-														start: format_date(new Date(calEvent.start.getTime()+j*interval_s)),
-														end: format_date(new Date(calEvent.end.getTime()+j*interval_s)),
-										
-									}
-									pool.release(conn);
-									res.send(req.body);
+								conn.query('UPDATE ca_events SET ca_relationships_id = ' + rid + ' WHERE id = "' + req.body.id + '"', function(err, result) {
+									if (err) throw err;
+
+									conn.end();
+									callback(err);
 								})
 							})
 						})
-					} else {
-						//process repeating event
-						if(req.body.repeating == true){
-							
-						}
-						pool.release(conn);
-						res.send(req.body);
+					})
+				} else {
+					callback(null);
+				}
+			},
+			createRepeatingEvent: function(callback) {
+				if (req.body.repeating == 1) {
+					//create repeating event
+					var freq = 0;
+					var repeat = parseInt(req.body.rrepeat);
+					var interval = req.body.rinterval;
+					var end_after = new Date(req.body.end_after);
+					var start = new Date(req.body.start);
+					var end = new Date(req.body.end);
+					var end_after_s = end_after.getTime();
+					var start_s = start.getTime();
+					var interval_s = 0;
+					switch (interval) {
+					case 'day':
+						interval_s = 86400000;
+						break;
+					case 'week':
+						interval_s = 604800000;
+						break;
+					case 'month':
+						interval_s = 2592000000;
+						break;
 					}
+
+					freq = Math.ceil((end_after_s - start_s) / (repeat * interval_s));
+
+					var repeat_list = [];
+					var j=0;
+
+					for(j=1;j<freq;j++) {
+						repeat_list[j-1] = j;
+					}
+					
+					async.eachSeries(repeat_list, function(freq_idx, cb) {
+						pool.getConnection(function(err, conn) {
+							qs.start = new Date(start.getTime() + freq_idx * interval_s).toISOString();
+							qs.end = new Date(end.getTime() + freq_idx * interval_s).toISOString();
+console.log(qs.start, qs.end);
+							conn.query('INSERT INTO ca_events (id, title, start, end, rrepeat, rinterval, end_after, ca_calendars_id, ca_calendars_ca_cases_id, ca_locations_id, ca_relationships_id, ca_annotations_id, rindex, repeating) SELECT id, title, "' + qs.start + '", "' + qs.end + '", rrepeat, rinterval, end_after, ca_calendars_id, ca_calendars_ca_cases_id, ca_locations_id, ca_relationships_id, ca_annotations_id, ' + freq_idx + ', repeating FROM ca_events WHERE id = "' + req.body.id + '" AND rindex = ' + 0, function(err) {
+								if (err) throw err;
+
+								conn.end();
+								cb();
+							})
+						})
+					}, function(err) {
+						if (err) throw err;
+						
+						callback(null);
+					})
+				} else {
+					callback(null);
+				}
+			},
+			readResults: function(callback) {
+				pool.getConnection(function(err, conn) {
+					conn.query("SELECT ca_events.id, ca_events.title, ca_events.start, ca_events.end, ca_events.rrepeat, ca_events.rinterval, ca_events.end_after, ca_events.rindex, ca_events.repeating, GROUP_CONCAT(ca_people.name) as people, ca_relationships.relationship FROM ca_events LEFT JOIN ca_relationships ON ca_events.ca_relationships_id = ca_relationships.id LEFT JOIN ca_people ON ca_relationships.id = ca_people.ca_relationships_id WHERE ca_events.id = '" + req.body.id + "' GROUP BY ca_events.id, ca_events.rindex", function(err, results) {
+						conn.end();
+						callback(err, results);
+					})
 				})
-		  }
-	  })
+			}
+		}, function(err, results) {
+			if (err) throw err;
+
+			var data = {};
+			data.results = results.readResults
+			res.send(data);
+		});
 	}
 };
 
 exports.update = function(req, res) {
-	var update_list = ['title','start','end','repeat','interval','end_after'];
-	if(typeof req.session.username === "undefined") {
+	var update_list = ['title', 'start', 'end', 'rrepeat', 'rinterval', 'end_after'];
+	if (typeof req.session.username === "undefined") {
 		res.redirect('/');
 	} else {
-		pool.acquire(function(err, conn){
-			if(err){
-				pool.release(conn);
-			}else{
-				var qs = {};
-				Object.keys(req.body).forEach(function(key){
-					if(update_list.indexOf(key) > -1) qs[key] = req.body[key];
+		var qs = {};
+		Object.keys(req.body).forEach(function(key) {
+			if (update_list.indexOf(key) > -1) qs[key] = req.body[key];
+		})
+
+		async.waterfall([
+
+		function(callback) {
+			//search old relationship
+			pool.getConnection(function(err, conn) {
+				conn.query('SELECT id, relationship FROM ca_relationships WHERE ca_events_id = "' + req.params.id + '"', function(err, results) {
+					if (err) throw err;
+
+					conn.end();
+					callback(null, results);
 				})
-			
-			conn.query('SELECT id, relationship FROM ca_relationships WHERE ca_events_id = "' + req.params.id + '"', function(err, result){
-					if(result.length > 0){
-						var rid = result[0].id;
-						var rel = result[0].relationship;
-						
-						if(req.body.relationship&&req.body.relationship!=''){
-							//check whether the relationship in database is changed, if not update people table only, then update event table
-							if(rel == req.body.relationship) {
-								//update people table
-								conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, result){
-									var people_new = [];
-									var people_old = [];
-									var insert_list = [];
-									var delete_list = [];
-									
-									for(var i in result) {
-										people_old.push(result[i].name);
-									}
-									
-									for(var i in req.body.people) {
-										people_new.push(req.body.people[i]);
-									}
-									
-									for(var i=0; i<people_new.length; i++) {
-										var idx = people_old.indexOf(people_new[i]);
-										if(idx > -1) {
-											people_new.splice(i,1);
-											people_old.splice(idx,1);
-											i--;
-										}
-									}
-									
-									insert_list = people_new;
-									delete_list = people_old;
-									
-									var insert_values = '',
-									    delete_values = '(';
+			})
+		}, 
+		function(results, callback) {
+			console.log(results);
+			//compare old relationship with new relationship
+			//check whether old relationship exists
+			if (results.length > 0) {
+				//old relationship exists
+				var rid = results[0].id;
+				var rel = results[0].relationship;
+				console.log('old relationship is '+rid+rel);
+				//check whether new relationship exists
+				if (req.body.relationship && req.body.relationship != '') {
+					//new relationship exists
+					//check whether the relationship in database is changed
+					if (rel == req.body.relationship) {
+						//if the old relationship is not changed, update people table only
+						pool.getConnection(function(err, conn) {
+							conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, results) {
+								var people_new = [];
+								var people_old = [];
+								var insert_list = [];
+								var delete_list = [];
 
-									for(var i in insert_list) {
-										insert_values += "('" + insert_list[i] + "', " + rid + ", '" + req.body.gid + "', " + req.body.ca_calendars_ca_cases_id + "),";
-									}
-									if(insert_values[insert_values.length-1] == ",") {
-										insert_values = insert_values.slice(0, -1);
-									}
-									
-									for(var i in delete_list) {
-										delete_values += "'" + delete_list[i] + "',";
-									}
-									if(delete_values[delete_values.length-1] == ",") {
-										delete_values = delete_values.slice(0, -1);
-									}
-									delete_values += ")";
+								for (var i in results) {
+									people_old.push(results[i].name);
+								}
 
-									if(insert_list.length > 0) {
-										conn.query('INSERT INTO ca_people (name, ca_relationships_id, ca_relationships_ca_graphs_id, ca_relationships_ca_graphs_ca_cases_id) VALUES ' + insert_values, function(err, result) {
-											if(err) throw err;
-											
-											var r_insert = [];
-											for(var i in insert_list) {
-												var r = {};
-												r.id = rid;
-												r.name = insert_list[i];
-												r.relationship = rel;
-												r_insert.push(r);
-											}
-											
-											req.body.r_insert = r_insert;
-											
-											if(delete_list.length > 0) {
-												conn.query('DELETE FROM ca_people WHERE name IN ' + delete_values + ' AND ca_relationships_id = ' + rid, function(err, result){
-													if(err) throw err;
+								for (var i in req.body.people) {
+									people_new.push(req.body.people[i]);
+								}
 
-													var r_delete = [];
-												  for(var i in delete_list) {
-														var r = {};
-														r.id = rid;
-														r.name = delete_list[i];
-														r.relationship = req.body.rel;
-														r_delete.push(r);
-													}
-													req.body.r_delete = r_delete;
-													
-													conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs, 
-													function(err, result){
-														if(err) throw err;
-														pool.release(conn);
-														res.send(req.body);
-													})
-												})
-											} else {
-												conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs, 
-												function(err, result){
-													if(err) throw err;
-													pool.release(conn);
-													res.send(req.body);
-												})
-											}
-										})
-									} else if(delete_list.length > 0){
-										conn.query('DELETE FROM ca_people WHERE name IN ' + delete_values, function(err, result){
+								for (var i = 0; i < people_new.length; i++) {
+									var idx = people_old.indexOf(people_new[i]);
+									if (idx > -1) {
+										people_new.splice(i, 1);
+										people_old.splice(idx, 1);
+										i--;
+									}
+								}
+
+								insert_list = people_new;
+								delete_list = people_old;
+
+								var r_insert = [];
+								for (var i in insert_list) {
+									var r = {};
+									r.id = rid;
+									r.name = insert_list[i];
+									r.relationship = rel;
+									r_insert.push(r);
+								}
+
+								var r_delete = [];
+								for (var i in delete_list) {
+									var r = {};
+									r.id = rid;
+									r.name = delete_list[i];
+									r.relationship = rel;
+									r_delete.push(r);
+								}
+
+								if((req.body.repeating == 1) && (req.body.rindex>0)){
+									if(insert_list.length > 0 || delete_list.length > 0){
+										//if it's a repeating event, and the change doesn't begin from the start, keep the old relationship and people, just create a new relationship and people for the change.
+										conn.query('INSERT INTO ca_relationships SET ?', {
+											relationship: req.body.relationship,
+											ca_graphs_id: req.body.gid,
+											ca_graphs_ca_cases_id: req.body.ca_calendars_ca_cases_id,
+											ca_events_id: req.params.id
+										}, function(err, result){
 											if(err) throw err;
 
-											var r_delete = [];
-										  for(var i in delete_list) {
-												var r = {};
-												r.id = rid;
-												r.name = delete_list[i];
-												r.relationship = req.body.relationship;
-												r_delete.push(r);
-											}
-											req.body.r_delete = r_delete;
-											
-											conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs, 
-											function(err, result){
-												if(err) throw err;
-												pool.release(conn);
-												res.send(req.body);
-											})
+											rid = result.insertId;
+											qs['ca_relationships_id'] = rid;
+											conn.end();
+											callback(null, rid, insert_list, [], r_insert, []);
 										})
 									} else {
-										conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs,
-										function(err, result){
-											if(err) throw err;
-											pool.release(conn);
-											res.send(req.body);
-										})
+										conn.end();
+										
+										callback(null, null, [], [], [], []);
 									}
-								})
-							} else {
-							//if the old relationship is changed, delete the old relationship and insert the new relationship, then update people table, then update event table
-								//delete old relationship
-								conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, result){
-									if(err) throw err;
+								} else {
+									conn.end();
 									
-									var r_delete = [];
-								  for(var i in result) {
-										var r = {};
-										r.id = rid;
-										r.name = result[i];
-										r.relationship = rel;
-										r_delete.push(r);
-									}
-									req.body.r_delete = r_delete;
-									
-									conn.query('DELETE FROM ca_relationships WHERE id = ' + rid, function(err, result){
-										//insert new relationship
+									callback(null, rid, insert_list, delete_list, r_insert, r_delete);
+								}
+							})
+						})
+					} else {
+						//if the old relationship is changed, delete the old relationship and insert the new relationship, then update people table
+						pool.getConnection(function(err, conn) {
+							conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, results) {
+								var insert_list = [];
+
+								insert_list = req.body.people;
+
+								var r_delete = [];
+								for (var i in results) {
+									var r = {};
+									r.id = rid;
+									r.name = results[i].name;
+									r.relationship = rel;
+									r_delete.push(r);
+								}
+
+								var r_insert = [];
+								for (var i in insert_list) {
+									var r = {};
+									r.id = rid;
+									r.name = insert_list[i];
+									r.relationship = req.body.relationship;
+									r_insert.push(r);
+								}
+
+								if((req.body.repeating == 1) && (req.body.rindex>0)){
+									//if it's a repeating event, and the change doesn't begin from the start, keep the old relationship and people, just create a new relationship and people for the change.
+									conn.query('INSERT INTO ca_relationships SET ?', {
+										relationship: req.body.relationship,
+										ca_graphs_id: req.body.gid,
+										ca_graphs_ca_cases_id: req.body.ca_calendars_ca_cases_id,
+										ca_events_id: req.params.id
+									}, function(err, result){
 										if(err) throw err;
+
+										rid = result.insertId;
+										qs['ca_relationships_id'] = rid;
+										
+										conn.end();
+										callback(null, rid, insert_list, [], r_insert, []);
+									})
+								} else {
+									conn.query('DELETE FROM ca_relationships WHERE id = ' + rid, function(err, results) {
+										//insert new relationship
+										if (err) throw err;
 
 										conn.query('INSERT INTO ca_relationships SET ?', {
 											relationship: req.body.relationship,
@@ -292,216 +330,353 @@ exports.update = function(req, res) {
 											ca_graphs_ca_cases_id: req.body.ca_calendars_ca_cases_id,
 											ca_events_id: req.params.id
 										}, function(err, result) {
-											if(err) throw err;
+											if (err) throw err;
 
 											rid = result.insertId;
-											var values = '';
+											qs['ca_relationships_id'] = rid;
 
-											for(var i in req.body.people) {
-												values = values + "('" + req.body.people[i] + "', " + rid + ", '" + req.body.gid + "', " + req.body.ca_calendars_ca_cases_id + "),";
-											}
-											if(values[values.length-1] == ",") {
-												values = values.slice(0, -1);
-											}
-											conn.query('INSERT INTO ca_people (name, ca_relationships_id, ca_relationships_ca_graphs_id, ca_relationships_ca_graphs_ca_cases_id) VALUES ' + values, function(err, result) {
-												if(err) throw err;
-
-												var r_insert = [];
-												for(var i in req.body.people) {
-													var r = {};
-													r.id = rid;
-													r.name = req.body.people[i];
-													r.relationship = req.body.relationship;
-													r_insert.push(r);
-												}
-												req.body.r_insert = r_insert;
-
-												qs['ca_relationships_id'] = rid;
-
-												conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs, 
-												function(err, result){
-													if(err) throw err;
-													pool.release(conn);
-													res.send(req.body);
-												})
-											})
+											conn.end();
+											callback(null, rid, insert_list, [], r_insert, r_delete);
 										})
 									})
-								})	
-							}
-						} else {
-							//delete the old relationship in database, then update event
-							conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, result){
-								if(err) throw err;
-								
-								var r_delete = [];
-							  for(var i in result) {
-									var r = {};
-									r.id = rid;
-									r.name = result[i];
-									r.relationship = rel;
-									r_delete.push(r);
 								}
-								req.body.r_delete = r_delete;
-								
-								conn.query('DELETE FROM ca_relationships WHERE id = ' + rid, function(err, result){
-									if(err) throw err;
+							})
+						})
+					}
+				} else {
+					//new relationship doesn't exist, delete the old relationship
+					pool.getConnection(function(err, conn) {
+						conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, results) {
+							var delete_list = [];
 
-									rid = null;
+							for (var i in results) {
+								delete_list.push(results[i].name);
+							}
+
+							var r_delete = [];
+							for (var i in delete_list) {
+								var r = {};
+								r.id = rid;
+								r.name = delete_list[i];
+								r.relationship = rel;
+								r_delete.push(r);
+							}
+							
+							if((req.body.repeating == 1) && (req.body.rindex>0)){
+								//if it's a repeating event, and the change doesn't begin from the start, do nothing
+								conn.end();
+								
+								qs['ca_relationships_id'] = null;
+								callback(null, null, [], [], [], []);
+							} else {
+								conn.query('DELETE FROM ca_relationships WHERE id = ' + rid, function(err, results) {
+									if (err) throw err;
+
 									qs['ca_relationships_id'] = null;
 
-									delete req.body.relationship;
-									delete req.body.people;
-
-									conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs, 
-									function(err, result){
-										if(err) throw err;
-										pool.release(conn);
-										res.send(req.body);
-									})
+									conn.end();
+									callback(null, null, null, null, null, r_delete);
 								})
-							})
-						}
-					} else {
-						//in case of no relationship is found in database, check whether there is relationship, if there is insert the new relationship, 
-						//then update people table, then update event table
-						if(req.body.relationship&&req.body.relationship!=''){
-								conn.query('INSERT INTO ca_relationships SET ?', {
-									relationship: req.body.relationship,
-									ca_graphs_id: req.body.gid,
-									ca_graphs_ca_cases_id: req.body.ca_calendars_ca_cases_id,
-									ca_events_id: req.params.id
-								}, function(err, result) {
-									if(err) throw err;
+							}
+						})
+					})
+				}
+			} else {
+				//old relationship doesn't exist
+				//check whether there is relationship, if there is insert the new relationship, 
+				//then update people table
+				if (req.body.relationship && req.body.relationship != '') {
+					//insert new relationship
+					var insert_list = [];
 
-									var rid = result.insertId;
-									var values = '';
+					insert_list = req.body.people;
 
-									for(var i in req.body.people) {
-										values = values + "('" + req.body.people[i] + "', " + rid + ", '" + req.body.gid + "', " + req.body.ca_calendars_ca_cases_id + "),";
-									}
-									if(values[values.length-1] == ",") {
-										values = values.slice(0, -1);
-									}
-									conn.query('INSERT INTO ca_people (name, ca_relationships_id, ca_relationships_ca_graphs_id, ca_relationships_ca_graphs_ca_cases_id) VALUES ' + values, function(err, result) {
-										if(err) throw err;
-
-										var r_insert = [];
-										for(var i in req.body.people) {
-											var r = {};
-											r.id = rid;
-											r.name = req.body.people[i];
-											r.relationship = req.body.relationship;
-											r_insert.push(r);
-										}
-										
-										req.body.r_insert = r_insert;
-										
-										qs['ca_relationships_id'] = rid;
-										conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs, 
-										function(err, result){
-											if(err) throw err;
-											pool.release(conn);
-											res.send(req.body);
-										})
-									})
-								})
-						} else {
-							//update the event
-							conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs,
-							function(err, result){
-								if(err) throw err;
-								pool.release(conn);
-								res.send(req.body);
-							})
-						}
+					var r_insert = [];
+					for (var i in insert_list) {
+						var r = {};
+						r.id = rid;
+						r.name = insert_list[i];
+						r.relationship = req.body.relationship;
+						r_insert.push(r);
 					}
+
+					pool.getConnection(function(err, conn) {
+						conn.query('INSERT INTO ca_relationships SET ?', {
+							relationship: req.body.relationship,
+							ca_graphs_id: req.body.gid,
+							ca_graphs_ca_cases_id: req.body.ca_calendars_ca_cases_id,
+							ca_events_id: req.params.id
+						}, function(err, result) {
+							if (err) throw err;
+
+							var rid = result.insertId;
+							qs['ca_relationships_id'] = rid;
+
+							conn.end();
+							callback(null, rid, insert_list, null, r_insert, null);
+						})
+					});
+				} else {
+					callback(null, null, null, null, null, null);
+				}
+			}
+		}, 
+		function(rid, insert_list, delete_list, r_insert, r_delete, callback) {
+			//process new people
+			if (insert_list && insert_list.length > 0) {
+				var insert_values = '';
+
+				for (var i in insert_list) {
+					insert_values += "('" + insert_list[i] + "', " + rid + ", '" + req.body.gid + "', " + req.body.ca_calendars_ca_cases_id + "),";
+				}
+				if (insert_values[insert_values.length - 1] == ",") {
+					insert_values = insert_values.slice(0, -1);
+				}
+				pool.getConnection(function(err, conn) {
+					conn.query('INSERT INTO ca_people (name, ca_relationships_id, ca_relationships_ca_graphs_id, ca_relationships_ca_graphs_ca_cases_id) VALUES ' + insert_values, function(err, results) {
+						if (err) throw err;
+
+						conn.end();
+						callback(null, rid, insert_list, delete_list, r_insert, r_delete);
+					})
 				})
-		  }
+			} else {
+				callback(null, rid, insert_list, delete_list, r_insert, r_delete);
+			}
+		}, 
+		function(rid, insert_list, delete_list, r_insert, r_delete, callback) {
+			//process old people
+			if (delete_list && delete_list.length > 0) {
+				delete_values = '(';
+
+				for (var i in delete_list) {
+					delete_values += "'" + delete_list[i] + "',";
+				}
+				if (delete_values[delete_values.length - 1] == ",") {
+					delete_values = delete_values.slice(0, -1);
+				}
+				delete_values += ")";
+
+				pool.getConnection(function(err, conn) {
+					conn.query('DELETE FROM ca_people WHERE name IN ' + delete_values + ' AND ca_relationships_id = ' + rid, function(err, results) {
+						if (err) throw err;
+
+						conn.end();
+						callback(null, r_insert, r_delete);
+					})
+				})
+			} else {
+				callback(null, r_insert, r_delete);
+			}
+		}, 
+		function(r_insert, r_delete, callback) {
+			//update event
+			console.log('req.body.idx is '+req.body.idx);
+			if (req.body.idx){
+				//update a repeating event
+				if (req.body.idx.charAt(0) == "x") {
+					//update all future events beyond this index
+					pool.getConnection(function(err, conn) {
+						conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '" AND rindex = ' + req.body.rindex, qs, function(err, results) {
+							if (err) throw err;
+
+							//update repeating event
+							var freq = 0;
+							var repeat = parseInt(req.body.rrepeat);
+							var interval = req.body.rinterval;
+							var end_after = new Date(req.body.end_after);
+							var start = new Date(req.body.start);
+							var end = new Date(req.body.end);
+							var end_after_s = end_after.getTime();
+							var start_s = start.getTime();
+							var interval_s = 0;
+							switch (interval) {
+							case 'day':
+								interval_s = 86400000;
+								break;
+							case 'week':
+								interval_s = 604800000;
+								break;
+							case 'month':
+								interval_s = 2592000000;
+								break;
+							}
+
+							freq = Math.ceil((end_after_s - start_s) / (repeat * interval_s));
+
+							var repeat_list = [];
+
+							for (var j=1;j<freq;j++) {
+								repeat_list[j-1] = j;
+							}
+
+							console.log(repeat_list);
+							async.eachSeries(repeat_list, function(freq_idx, cb) {
+									qs.start = new Date(start.getTime() + freq_idx * interval_s).toISOString();
+									qs.end = new Date(end.getTime() + freq_idx * interval_s).toISOString();
+									var rindex = parseInt(req.body.rindex)+parseInt(freq_idx);
+									console.log(rindex);
+console.log('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '" AND rindex = ' + rindex);
+console.log(qs);
+									conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '" AND rindex = ' + rindex, qs, function(err) {
+										if (err) throw err;
+
+										cb();
+									})
+							}, function(err) {
+								if (err) throw err;
+
+								conn.end();
+								callback(null, r_insert, r_delete);
+							})
+						})
+					})
+				} else {
+					//update only this event
+					pool.getConnection(function(err, conn) {
+						conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '" AND rindex = ' + req.body.rindex, qs, function(err, results) {
+							if (err) throw err;
+
+							conn.end();
+							callback(null, r_insert, r_delete);
+						})
+					})
+				}
+			} else {
+				//update a non-repeating event
+				pool.getConnection(function(err, conn) {
+					conn.query('UPDATE ca_events SET ? WHERE id = "' + req.params.id + '"', qs, function(err, results) {
+						if (err) throw err;
+
+						conn.end();
+						callback(null, r_insert, r_delete);
+					})
+				})
+			}
+		}, 	 
+			function(r_insert, r_delete, callback) {
+			//read results
+			pool.getConnection(function(err, conn) {
+				conn.query("SELECT ca_events.id, ca_events.title, ca_events.start, ca_events.end, ca_events.rrepeat, ca_events.rinterval, ca_events.end_after, ca_events.rindex, ca_events.repeating, GROUP_CONCAT(ca_people.name) as people, ca_relationships.relationship FROM ca_events LEFT JOIN ca_relationships ON ca_events.ca_relationships_id = ca_relationships.id LEFT JOIN ca_people ON ca_relationships.id = ca_people.ca_relationships_id WHERE ca_events.id = '" + req.params.id + "' GROUP BY ca_events.id, ca_events.rindex", function(err, results) {
+					if(err) throw err;
+					
+					var data = {};
+					data.results = results;
+					data.r_insert = r_insert;
+					data.r_delete = r_delete;
+
+					conn.end();
+					callback(null, data);
+				})
+			})
+		}], 
+		function(err, data) {
+			if (err) throw err;
+			console.log(data);
+			res.send(data);
 		});
-	}	
+	}
 };
 
 exports.delete = function(req, res) {
-	if(typeof req.session.username === "undefined") {
+	if (typeof req.session.username === "undefined") {
 		res.redirect('/');
 	} else {
-		pool.acquire(function(err, conn){
-			if(err){
-				pool.release(conn);
-			}else{
-				conn.query('SELECT * FROM ca_relationships WHERE ca_events_id = "' + req.params.id + '"', function(err, result){
-					if(result.length > 0){
-						var rid = result[0].id;
-						var rel = result[0].relationship;
-						
-						if(result[0].ca_locations_id||result[0].ca_annotations_id){
-							//keep the relationship, only delete the event
-							conn.query('DELETE FROM ca_events WHERE id = "' + req.params.id + '"', function(err, result){
-								if(err) throw err;
-								
-								pool.release(conn);
-								res.send(req.params.id);
+		async.waterfall([
+
+		function(callback) {
+			//process relationship, if relationship exists and is associated with other modules, keep it, otherwise, delete it
+			pool.getConnection(function(err, conn) {
+				conn.query('SELECT * FROM ca_relationships WHERE ca_events_id = "' + req.params.id + '"', function(err, results) {
+					if (err) throw err;
+
+					conn.end();
+					callback(null, results);
+				})
+			})
+		}, function(results, callback) {
+			if (results.length > 0) {
+				var rid = results[0].id;
+				var rel = results[0].relationship;
+
+				if (results[0].ca_locations_id || results[0].ca_annotations_id) {
+					//keep the relationship, only delete the event
+					callback(null, null);
+				} else {
+					//delete the relationship, then delete the event
+					pool.getConnection(function(err, conn) {
+						conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, results) {
+							if (err) throw err;
+
+							var r_delete = [];
+							for (var i in results) {
+								var r = {};
+								r.id = rid;
+								r.name = results[i].name;
+								r.relationship = rel;
+								r_delete.push(r);
+							}
+
+							conn.query('DELETE FROM ca_relationships WHERE id = ' + rid, function(err, results) {
+								if (err) throw err;
+
+								conn.end();
+								callback(null, r_delete);
 							})
-						} else {
-							//delete the relationship, then delete the event
-							conn.query('SELECT name FROM ca_people WHERE ca_relationships_id = ' + rid, function(err, result){
-								var r_delete = [];
-							  for(var i in result) {
-									var r = {};
-									r.id = rid;
-									r.name = result[i].name;
-									r.relationship = rel;
-									r_delete.push(r);
-								}
-								req.body.r_delete = r_delete;
-								
-								conn.query('DELETE FROM ca_relationships WHERE id = ' + rid, function(err, result){
-									if(err) throw err;
-
-									conn.query('DELETE FROM ca_events WHERE id = "' + req.params.id + '"', function(err, result){
-										if(err) throw err;
-
-										req.body.id = req.params.id;
-
-										pool.release(conn);
-										res.send(req.body);
-									})
-								})
-							})
-						}
-					} else {
-						//delete the event
-						conn.query('DELETE FROM ca_events WHERE id = "' + req.params.id + '"', function(err, result){
-							if(err) throw err;
-							
-							pool.release(conn);
-							res.send(req.params.id);
 						})
-					}
+					})
+				}
+			} else {
+				//no existing relationships associated with this event, only delete the event
+				callback(null, null);
+			}
+		}, function(r_delete, callback) {
+			//process event
+			if (req.body.idx) {
+				//delete a repeating event
+				if (req.body.idx.charAt(0) == "x") {
+					//delete all future events beyond this index
+					console.log('req.body.idx is ' + req.body.idx);
+					var idx = req.body.idx.substring(1);
+					console.log('idx is '+idx);
+					pool.getConnection(function(err, conn) {
+						console.log('DELETE FROM ca_events WHERE id = "' + req.params.id + '" AND rindex >= ' + idx);
+						conn.query('DELETE FROM ca_events WHERE id = "' + req.params.id + '" AND rindex >= ' + idx, function(err, result) {
+							if (err) throw err;
+
+							conn.end();
+							callback(null, null);
+						})
+					})
+				} else {
+					//only delete this event
+					pool.getConnection(function(err, conn) {
+						conn.query('DELETE FROM ca_events WHERE id = "' + req.params.id + '" AND rindex = ' + req.body.idx, function(err, result) {
+							if (err) throw err;
+
+							conn.end();
+							callback(null, null);
+						})
+					})
+				}
+			} else {
+				//delete a non-repeating event that has the id
+				pool.getConnection(function(err, conn) {
+					conn.query('DELETE FROM ca_events WHERE id = "' + req.params.id + '"', function(err, result) {
+						if (err) throw err;
+
+						conn.end();
+						callback(null, r_delete);
+					})
 				})
 			}
-		});
-	}	
+		}], function(err, r_delete) {
+			if (err) throw err;
+
+			var data = {};
+			data.id = req.params.id;
+			data.r_delete = r_delete;
+			res.send(data);
+		})
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

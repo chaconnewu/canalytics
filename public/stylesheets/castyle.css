@@ -281,3 +281,12 @@ div.tooltip {
 	pointer-events: none;
 	z-index: 32767;
 }
+
+.ui-front {
+	z-index: 99999 !important;
+}
+
+/********warning dialog*********/
+#repeating_alert {
+	width: 500px !important;
+}

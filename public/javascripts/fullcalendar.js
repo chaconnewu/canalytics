@@ -1105,7 +1105,7 @@ function EventManager(options, _sources) {
 			endDelta = event.end ?
 				(event.end - (event._end || defaultEventEnd(event))) // event._end would be null if event.end
 				: 0;                                                      // was null and event was just resized
-		for (i=0; i<len; i++) {
+		/*for (i=0; i<len; i++) {
 			e = cache[i];
 			if (e._id == event._id && e != event) {
 				e.start = new Date(+e.start + startDelta);
@@ -1129,7 +1129,7 @@ function EventManager(options, _sources) {
 				e.textColor = event.textColor;
 				normalizeEvent(e);
 			}
-		}
+		}*/
 		normalizeEvent(event);
 		reportEvents(cache);
 	}

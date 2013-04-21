@@ -14,35 +14,26 @@ exports.index = function(req, res){
 };
 
 exports.login = function(req, res){
-	pool.acquire(function(err, conn){
-		if(err){
-			pool.release(conn);
-			res.redirect('/');
-		}else{
+	pool.getConnection(function(err, conn){
 			conn.query("SELECT * FROM ca_users WHERE username = " + conn.escape(req.body.username) + " AND password = " + conn.escape(req.body.password), function(err, results){
 				if(err) throw err;
 				if(results[0]) {
 					req.session.username = results[0].username;
 					req.session.uid = results[0].id;
 				}
-				pool.release(conn);
+				conn.end();
 				res.redirect('/');
 			});
-		}
-	});
+	})
 };
 
 exports.signup = function(req, res){
-	pool.acquire(function(err, conn){
-		if(err){
-			pool.release(conn);
-		}else{
+	pool.getConnection(function(err, conn){
 			conn.query("INSERT INTO ca_users SET ?", {username: req.body.username, password: req.body.password, email: req.body.password}, function(err, results){
 				if(err) throw err;
-				pool.release(conn);
+				conn.end();
 			});
-		}
-	});
+	})
 	res.redirect('/');
 };
 

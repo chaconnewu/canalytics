@@ -100,7 +100,7 @@ exports.people = function(req, res) {
 			if(err){
 				conn.end();
 			}else{
-				var query = conn.query('SELECT DISTINCT name FROM ca_people WHERE ca_relationships_ca_graphs_ca_cases_id = ' + req.params.id, 
+				var query = conn.query('SELECT DISTINCT ca_people.name AS name FROM ca_people JOIN ca_relationships ON ca_people.ca_relationships_id = ca_relationships.id JOIN ca_graphs ON ca_relationships.ca_graphs_id = ca_graphs.id WHERE ca_graphs.ca_cases_id = ' + req.params.id, 
 				function(err, result){
 					if(err) throw err;
 					conn.end();
@@ -119,7 +119,7 @@ exports.relations = function(req, res) {
 			if(err){
 				conn.end();
 			}else{
-				var query = conn.query('SELECT DISTINCT relationship FROM ca_relationships WHERE ca_graphs_ca_cases_id = ' + req.params.id, 
+				var query = conn.query('SELECT DISTINCT ca_relationships.relationship AS relationship FROM ca_relationships JOIN ca_graphs ON ca_relationships.ca_graphs_id = ca_graphs.id WHERE ca_graphs.ca_cases_id = ' + req.params.id, 
 				function(err, result){
 					if(err) throw err;
 					conn.end();

@@ -29,6 +29,7 @@ block append head
 	script(src="/javascripts/camap.js")
 	script(src="/javascripts/cagraph.js")
 	script(src="/javascripts/capeople.js")
+	script(src="/javascripts/calocation.js")
 
 block content
 	#container.centerpanel
@@ -49,7 +50,7 @@ block content
 						ul#maps
 							- each map in maplist
 								li
-									a(href="#", onclick="return caWindows.openWindow(this, '#{map.id}', '#{map.title}', 'map');") #{map.title}
+									a(href="/maps/#{map.id}", onclick="return caWindows.openWindow(this, '#{map.id}', '#{map.title}', 'map');") #{map.title}
 					li
 						a.heading(href='#Calendar') Calendar
 						ul#calendar
@@ -77,5 +78,6 @@ block content
 		accountId = "#{uid}"
 		caseName = "#{title}"
 		cid = "#{cid}"
+		mid = "#{maplist[0].id}"
 		gid = "#{graphlist[0].id}"
 	script(src='/javascripts/socketevents.js')

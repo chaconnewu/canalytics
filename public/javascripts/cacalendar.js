@@ -11,7 +11,7 @@ function caCalendar(el, options) {
 	el.fullCalendar(this.options);
 };
 
-caCalendar.prototype.metadata = ['title','start','end', 'people', 'relationship'];
+caCalendar.prototype.metadata = ['title','start','end', 'location', 'people', 'relationship'];
 
 caCalendar.prototype.rinterval = ['day','week','month'];
 
@@ -42,10 +42,12 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 	
 	var p_options = '<option></option>';
 	var r_options = '<option></option>';
+	var l_options = '<option></option>';
 	
 	if(calEvent.people) {
+		var people_list = calEvent.people.split(',');
 		for(var i in capeople.people_list) {
-			if(calEvent.people.indexOf(capeople.people_list[i]) > -1) {
+			if(people_list.indexOf(capeople.people_list[i]) > -1) {
 				p_options += '<option value="' + capeople.people_list[i] + '" selected>' + capeople.people_list[i] + '</option>';
 			} else {
 				p_options += '<option value="' + capeople.people_list[i] + '">' + capeople.people_list[i] + '</option>';
@@ -73,23 +75,51 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 		}
 	}
 	
-	var html = "<form id='editevent' name='editevent' action='/calendars/events/" + calEvent.id + "' method='put'><input type='hidden' name='id' value='" + calEvent.id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><input type='hidden' name='gid' value='" + window.gid + "'><input type='hidden' name='rindex' value=" + calEvent.rindex + "><input type='hidden' name='repeating' value=" + calEvent.repeating + "><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>" + calEvent.title + "</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + start + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + end + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat' value=" + calEvent.rrepeat + "> <select name='rinterval'>" + i_options + "</select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after' value='" + end_after + "'><br><select name='people' data-placeholder='People...' class='chzn-select' multiple tabindex='1'>" + p_options + "</select><br><select name='relationship' data-placeholder='Relation...' class='chzn-select' tabindex='4'>" + r_options + "</select><br><input id='calput' class='form_btn' type='button' value='Done'><input id='caldel' class='form_btn' type='button' value='Delete'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
+	calEvent.rrepeat = (calEvent.rrepeat==0)?'':calEvent.rrepeat
+	
+	if(calEvent.location) {
+		for(var i in calocation.location_list) {
+			if(calEvent.location == calocation.location_list[i]) {
+				l_options += '<option value="' + calocation.location_list[i] + '" selected>' + calocation.location_list[i] + '</option>';
+			} else {
+				l_options += '<option value="' + calocation.location_list[i] + '">' + calocation.location_list[i] + '</option>';
+			}
+		}
+	}
+	
+	var html = "<form id='editevent' name='editevent' action='/calendars/events/" + calEvent.id + "' method='put'><input type='hidden' name='id' value='" + calEvent.id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><input type='hidden' name='gid' value='" + window.gid + "'><input type='hidden' name='rindex' value=" + calEvent.rindex + "><input type='hidden' name='repeating' value=" + calEvent.repeating + "><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>" + calEvent.title + "</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + start + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + end + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat' value=" + calEvent.rrepeat + "> <select name='rinterval'>" + i_options + "</select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after' value='" + end_after + "'><br><select name='location' data-placeholder='Location...' class='chzn-select' tabindex='4'>" + l_options + "</select><br><select name='people' data-placeholder='People...' class='chzn-select' multiple tabindex='1'>" + p_options + "</select><br><select name='relationship' data-placeholder='Relation...' class='chzn-select' tabindex='4'>" + r_options + "</select><br><input id='calput' class='form_btn' type='button' value='Done'><input id='caldel' class='form_btn' type='button' value='Delete'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
 	
 	el.showBalloon({
 		id: 'editorballoon',
 		contents:html});
 	$(".chzn-select").chosen({
 		create_option: function(term){
+			var that = this;
 			if(this.default_text == 'People...') {
 				capeople.people_list.push(term);
+				this.append_option({
+					value: term,
+					text: term
+				})
 			}
 			if(this.default_text == 'Relation...') {
 				capeople.relation_list.push(term);
+				this.append_option({
+					value: term,
+					text: term
+				})
 			}
-			this.append_option({
-				value: term,
-				text: term
-			})
+			if(this.default_text == 'Location...') {
+				_this.searchLocations(term, 'editorballoon', function(loc_selected){
+					if(loc_selected){
+						calocation.location_list.push(loc_selected);
+						that.append_option({
+							value: loc_selected,
+							text: loc_selected
+						})
+					}
+				});
+			}
 		},
 		persistent_create_option: true,
 		allow_single_deselect: true
@@ -159,7 +189,7 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 						$(this).dialog("close");
 						$("#editevent").remove();
 						el.removeBalloon('editorballoon');
-						var params = "idx=x"+calEvent.rindex;
+						var params = "idx=x"+calEvent.rindex+"&rindex="+calEvent.rindex;
 						ajax_request('/calendars/events/'+calEvent.id, 'DELETE', params, function(data){
 							var e = _this.el.fullCalendar( 'clientEvents', data.id);
 
@@ -167,9 +197,9 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 							var id = calEvent.id;
 							var idx = calEvent.rindex;
 							
-							for(var i=idx;i<count;i++){
+							/*for(var i=idx;i<count;i++){
 								$('#balloon-'+calEvent.id+'-'+i).remove();
-							}
+							}*/
 							
 							_this.el.fullCalendar( 'removeEvents', function(eventObject){
 								return (eventObject.id == id) && (eventObject.rindex >= idx);
@@ -178,6 +208,8 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 							var _data = data;
 							_data.el = $(_this.el).attr('id');
 							_data.room = window.caseName;
+							_data.idx = idx;
+							_data.mode = 'da';
 							socket.emit('DBEventDeleted', _data);
 
 							if(window.cagraph){
@@ -192,12 +224,12 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 						$(this).dialog("close");
 						$("#editevent").remove();
 						el.removeBalloon('editorballoon');
-						var params = "idx="+calEvent.rindex;
+						var params = "idx="+calEvent.rindex+"&rindex="+calEvent.rindex;
 						ajax_request('/calendars/events/'+calEvent.id, 'DELETE', params, function(data){
 							var id = calEvent.id;
 							var idx = calEvent.rindex;
 							
-							el.removeBalloon('balloon-'+calEvent.id+'-'+idx);
+							//el.removeBalloon('balloon-'+calEvent.id+'-'+idx);
 							
 							_this.el.fullCalendar( 'removeEvents', function(eventObject){
 								return (eventObject.id == id) && (eventObject.rindex == idx)
@@ -206,6 +238,8 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 							var _data = data;
 							_data.el = $(_this.el).attr('id');
 							_data.room = window.caseName;
+							_data.idx = idx;
+							_data.mode = 'do';
 							socket.emit('DBEventDeleted', _data);
 
 							if(window.cagraph){
@@ -229,7 +263,7 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 			ajax_request('/calendars/events/'+calEvent.id, 'DELETE', null, function(data){
 				_this.el.fullCalendar( 'removeEvents', data.id);
 				
-				el.removeBalloon('balloon-'+calEvent.id+'-'+calEvent.rindex);
+				//el.removeBalloon('balloon-'+calEvent.id+'-'+calEvent.rindex);
 				win.removeClass('editing');
 				
 				var _data = data;
@@ -278,6 +312,7 @@ caCalendar.prototype.showNewEventEditor = function(date, allDay, jsEvent, view) 
 	var el = $(jsEvent.target);
 	var p_options = '<option></option>';
 	var r_options = '<option></option>';
+	var l_options = '<option></option>';
 
 	for(var i in capeople.people_list) {
 		p_options = p_options + '<option value="' + capeople.people_list[i] + '">' + capeople.people_list[i] + '</option>';
@@ -285,7 +320,11 @@ caCalendar.prototype.showNewEventEditor = function(date, allDay, jsEvent, view) 
 	for(var i in capeople.relation_list) {
 		r_options = r_options + '<option value="' + capeople.relation_list[i] + '">' + capeople.relation_list[i] + '</option>';
 	}
-	var html = "<form id='newevent' name='newevent'><input type='hidden' name='id' value='" + id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><input type='hidden' name='gid' value='" + window.gid + "'><input type='hidden' name='rindex' value=0><input type='hidden' name='repeating' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select name='rinterval'><option value=''></option><option value='day'>Day(s)</option><option value='week'>Week(s)</option><option value='month'>Month(s)</option></select><br><label for='endond'>End On Date:</label><input type='datetime-local' name='end_after'><br><select name='people' data-placeholder='People...' class='chzn-select' multiple tabindex='1'>" + p_options + "</select><br><select name='relationship' data-placeholder='Relation...' class='chzn-select' tabindex='4'>" + r_options + "</select><br><input id='calpost' class='form_btn' type='button' value='Done'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
+	for(var i in calocation.location_list) {
+		l_options = l_options + '<option value="' + calocation.location_list[i] + '">' + calocation.location_list[i] + '</option>';
+	}
+	
+	var html = "<form id='newevent' name='newevent'><input type='hidden' name='id' value='" + id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><input type='hidden' name='gid' value='" + window.gid + "'><input type='hidden' name='rindex' value=0><input type='hidden' name='repeating' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select name='rinterval'><option value=''></option><option value='day'>Day(s)</option><option value='week'>Week(s)</option><option value='month'>Month(s)</option></select><br><label for='endond'>End On Date:</label><input type='datetime-local' name='end_after'><br><select name='location' data-placeholder='Location...' class='chzn-select' tabindex='4'>" + l_options + "</select><br><select name='people' data-placeholder='People...' class='chzn-select' multiple tabindex='1'>" + p_options + "</select><br><select name='relationship' data-placeholder='Relation...' class='chzn-select' tabindex='4'>" + r_options + "</select><br><input id='calpost' class='form_btn' type='button' value='Done'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
 	el.showBalloon({
 		id: 'neweditorballoon',
 		offsetX: jsEvent.clientX-el.offset().left-el.outerWidth()+10,
@@ -293,28 +332,44 @@ caCalendar.prototype.showNewEventEditor = function(date, allDay, jsEvent, view) 
 	});
 	$(".chzn-select").chosen({
 		create_option: function(term){
+			var that = this;
 			if(this.default_text == 'People...') {
 				capeople.people_list.push(term);
+				this.append_option({
+					value: term,
+					text: term
+				})
 			}
 			if(this.default_text == 'Relation...') {
 				capeople.relation_list.push(term);
+				this.append_option({
+					value: term,
+					text: term
+				})
 			}
-			this.append_option({
-				value: term,
-				text: term
-			})
+			if(this.default_text == 'Location...') {
+				_this.searchLocations(term, 'neweditorballoon', function(loc_selected){
+					if(loc_selected){
+						calocation.location_list.push(loc_selected);
+						that.append_option({
+							value: loc_selected,
+							text: loc_selected
+						})
+					}
+				});
+			}
 		},
 		persistent_create_option: true,
 		allow_single_deselect: true
 	});
 	$("#calpost").click(function(){
 		_this.validateForm('newevent');
-		var params = $("#newevent").serialize();
-		$("#newevent").remove();
-		//el.hideBalloon();
-		el.removeBalloon('neweditorballoon');
-		ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
-		win.removeClass('editing');
+			var params = $("#newevent").serialize();
+			$("#newevent").remove();
+			//el.hideBalloon();
+			el.removeBalloon('neweditorballoon');
+			ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
+			win.removeClass('editing');
 	});
 	$(".calcncl").click(function(){
 		$("#newevent").remove();
@@ -420,63 +475,12 @@ caCalendar.prototype.hideEvent = function(event, jsEvent, view) {
 	return false;
 };
 
-caCalendar.prototype.showNewEventSelector = function(startDate, endDate, allDay, jsEvent, view) {
-	var _this = this;
-	var win = $(jsEvent.target).closest('.cacalendar');
-	if(win.hasClass('editing')) return false;
-	win.addClass('editing');
-	
-	var start = format_date(startDate);
-	
-	var end = new Date(endDate);
-	end = end.setHours(end.getHours()+1);
-	end = new Date(end);
-	end = format_date(end);
-	
-	var id = generateUUID();
-	win.fullCalendar( 'renderEvent', {
-		id: id,
-		title: 'New Event',
-		start: start,
-		end: end,
-		className: 'newevent'
-	}, true);
-	
-	var el = $(jsEvent.target);
-	var html = "<form id='newevent' name='newevent'><input type='hidden' name='id' value='" + id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + start + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + end + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select name='rinterval'><option value=''></option><option value='day'>Day(s)</option><option value='week'>Week(s)</option><option value='month'>Month(s)</option></select><br><label for='endond'>End On Date:</label><input type='datetime-local' name='end_after'><br><input id='calpost' class='form_btn' type='button' value='Done'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
-	el.showBalloon({
-		id: 'newselectorballoon',
-		offsetX: jsEvent.clientX-el.offset().left-el.outerWidth()+10,
-		contents:html
-	});
-	$("#calpost").click(function(){
-		_this.validateForm('newevent');
-		var params = $("#newevent").serialize();
-		$("#newevent").remove();
-		//el.hideBalloon();
-		el.removeBalloon('newselectorballoon');
-		ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
-		win.fullCalendar('unselect');
-		win.removeClass('editing');
-	});
-	$(".calcncl").click(function(){
-		$("#newevent").remove();
-		//el.hideBalloon();
-		el.removeBalloon('newselectorballoon');
-		win.fullCalendar( 'removeEvents', id);
-		win.fullCalendar('unselect');
-		win.removeClass('editing');
-	});
-	
-	return false;
-};
-
 caCalendar.prototype.validateForm = function(el){
 	var fm = document.forms[el];
 	
 	//validate time
-	var start = document.forms[el]['start'].value;
-	var end = document.forms[el]['end'].value || start;
+	var start = fm['start'].value;
+	var end = fm['end'].value || start;
 	
 	var _start = $.fullCalendar.parseDate(start);
 	var _end = $.fullCalendar.parseDate(end);
@@ -525,6 +529,57 @@ caCalendar.prototype.validateForm = function(el){
 		//invalid values, delete relationship and people
 		fm['relationship'] = '';
 		fm['people'] = '';
+	}
+};
+
+caCalendar.prototype.searchLocations = function(loc, el, callback){
+		if(calocation.location_list.indexOf(loc) > -1) {
+			callback(null);
+		} else {
+		geocoder.geocode({
+			'address': loc
+		}, function(results, status){
+			if(status == google.maps.GeocoderStatus.OK) {
+				//valid location
+				var radio_btns = '';
+				var addrs = {};
+				for(var i=0; i<results.length; i++){
+					radio_btns += "<input type='radio' name='loc' value='" + results[i]["formatted_address"] + "'>" + results[i]["formatted_address"] + "<br>";
+					addrs[results[i]["formatted_address"]] = results[i]["geometry"]["location"];
+				}
+				$("#"+el).append("<div id='location_alert'><form id='locform' name='locform'><b>Which location do you mean?</b><br>" + radio_btns + "</form></div>");
+
+				$("#location_alert").dialog({
+					width: 'auto',
+					modal: true,
+					buttons:{
+						'None of the above': function(){
+							$(this).dialog("close");
+							callback(null);
+						},
+						'Done': function(){
+							var loc_selected = $('input:radio[name=loc]:checked').val();
+							$(this).dialog("close");
+							if(camap){
+							new google.maps.Marker({
+								map: camap.map,
+								position: addrs[loc_selected],
+								title: loc_selected
+							})}
+							var params = "location="+encodeURIComponent(loc_selected)+"&lat="+addrs[loc_selected].lat()+"&lng="+addrs[loc_selected].lng()+"&mid="+mid;
+							ajax_request('/maps/location', 'POST', params, callback(loc_selected));
+						}
+					},
+					close: function(ev, ui) {
+						$(this).dialog("destroy");
+						$(this).remove();
+					}
+				})
+			} else {
+				$("#neweditorballoon").append("<div id='location_alert'>We could not find the location <b>" + loc + "</b>. Make sure all street and city names are spelled correctly.</div>");
+				callback(null);
+			}
+		})
 	}
 };
 

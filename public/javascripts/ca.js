@@ -57,6 +57,17 @@ $(document).ready(function() {
 	//initialize caPeople
 	capeople = new caPeople();
 	
+	//initialize caLocation
+	calocation = new caLocation();
+	
+	//initialize google map service
+	window.geocoder = new google.maps.Geocoder();
+	window.mapOptions = {
+        center: new google.maps.LatLng(40.7933, -77.8603),
+        zoom: 16,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      };
+	
 	//initialize google map
 	/*var x = Math.random()*80;
 	var y = Math.random()*20;

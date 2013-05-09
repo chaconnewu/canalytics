@@ -8,9 +8,9 @@ var express = require('express')
   , user = require('./routes/user')
 	, cahandler = require('./routes/cahandler')
 	, store = require('./routes/store')
-	, schedulers = require('./routes/schedulers')
 	, cal = require('./routes/cal')
 	, graph = require('./routes/graph')
+	, geo = require('./routes/geo')
   , http = require('http')
   , path = require('path')
 	, sharejs = require('share').server
@@ -60,6 +60,8 @@ app.delete('/calendars/events/:id', cal.delete);
 app.get('/graphs/:id', graph.read);
 app.get('/people/:id', graph.people);
 app.get('/relations/:id', graph.relations);
+app.get('/maps/:id', geo.read);
+app.post('/maps/location', geo.create);
 app.get('/logout', routes.logout);
 
 

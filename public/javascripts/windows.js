@@ -71,7 +71,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 					break;
 				case 'map':
 					$.get(href, function(data){
-						new caMap(win, data);
+						camap = new caMap(win, data);
 					})
 					break;
 				case 'cal':

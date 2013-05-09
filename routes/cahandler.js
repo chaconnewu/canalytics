@@ -27,7 +27,7 @@ exports.mycase = function(req, res) {
 		res.redirect('/');
 	} else {
 		pool.getConnection(function(err, conn) {
-			conn.query("select ca_docs.uuid, ca_docs.title from ca_docs join ca_users_has_ca_docs on ca_docs.uuid = ca_users_has_ca_docs.ca_docs_uuid where ca_users_has_ca_docs.ca_users_id = " + req.session.uid + " AND ca_users_has_ca_docs.ca_docs_ca_cases_id = " + req.query['cid'], function(err, results) {
+			conn.query("select uuid, title from ca_docs where ca_cases_id = " + req.query['cid'], function(err, results) {
 				var doclist = [];
 
 				if (err) throw err;

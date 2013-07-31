@@ -16,6 +16,10 @@ var express = require('express')
 	, sharejs = require('share').server
 	, sio = require('socket.io');
 
+//declare two global variables for recording synchronization status
+blocklist = {},
+userblocklist = {};
+
 var app = express();
 
 // configure express, since this server is
@@ -58,15 +62,17 @@ app.post('/calendars/events', cal.create);
 app.put('/calendars/events/:id', cal.update);
 app.delete('/calendars/events/:id', cal.delete);
 app.get('/graphs/:id', graph.read);
+app.get('/graphs/', graph.readfacts);
 app.get('/people/:id', graph.people);
 app.get('/relations/:id', graph.relations);
-app.get('/maps/:id', geo.read);
+app.get('/maps/:id', geo.readall);
+app.get('/maps/location/:id', geo.readfacts);
 app.post('/maps/location', geo.create);
+app.post('/sync', routes.sync);
+app.get('/desync', routes.desync);
 app.get('/logout', routes.logout);
 
 
-var options = {db: {type: 'none'}, browserChannel: {cors:'*'}};
-sharejs.attach(app, options);
 var server = http.createServer(app);
 
 var io = sio.listen(server);

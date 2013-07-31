@@ -47,11 +47,12 @@ caGraph.prototype.addLink = function (source, target, typeid, type) {
 	var np = source + "_" + target;
 	if(this.nodePair[np]) {
 		this.nodePair[np]['num']++;
-		this.nodePair[np]['info'] += '<span id=' + typeid + '>' + type + '</span><br>';
+		this.nodePair[np]['relations'].push(typeid);
 	} else {
 		this.nodePair[np] = {};
 		this.nodePair[np]['num'] = 1;
-		this.nodePair[np]['info'] = '<span id=' + typeid + '>' + type + '</span><br>';
+		this.nodePair[np]['relations'] = [];
+		this.nodePair[np]['relations'].push(typeid);
 		this.links.push({"source":this.findNode(source),"target":this.findNode(target)});
 	}
 	this.update();
@@ -60,9 +61,8 @@ caGraph.prototype.addLink = function (source, target, typeid, type) {
 caGraph.prototype.removeLink = function (source, target, typeid, type) {
 	var np = this.nodePair[source+'_'+target];
 	this.nodePair[source+'_'+target].num--;
-	var i = np.info.indexOf('<span id=' + typeid + '>');
-	var k = np.info.indexOf('<br>', i);
-	this.nodePair[source+'_'+target].info = this.nodePair[source+'_'+target].info.substring(0,i) + this.nodePair[source+'_'+target].info.substring(k+4);
+	np.relations.splice(np.relations.indexOf(typeid), 1);
+
 	if(this.nodePair[source+'_'+target].num <= 0) {
 		delete this.nodePair[source+'_'+target];
 		this.links.splice(this.findLinkIndex(source, target),1);
@@ -102,13 +102,13 @@ caGraph.prototype.update = function () {
 	var _this = this;
 	var link = this.svg.selectAll(".link")
 	    												.data(this.force.links(), function(d){ return d.source.id + '-' + d.target.id; });
-	
+	/*'/graphs', JSON.stringify(_this.nodePair[d.source.id+'_'+d.target.id].relations)*/
 	var linkenter = link.enter().insert("line", ".node")
 							.attr('class', 'link')
 							.on('mouseover', function(d){
 								d3.select(this).transition()
 															 .style('stroke', '#00B9D2');
-								_this.div.html(_this.nodePair[d.source.id+'_'+d.target.id].info)
+								_this.div.html(JSON.stringify(_this.nodePair[d.source.id+'_'+d.target.id].relations))
 												  .style('left', (d3.event.pageX) + 'px')
 													.style('top', (d3.event.pageY-_this.div[0][0].offsetHeight) + 'px');
 

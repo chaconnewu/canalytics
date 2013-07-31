@@ -4,7 +4,7 @@ $(document).ready(function() {
 	$("body").width($(window).width());
 	panel_width = 165;
 	
-	$( "#nav_panel" ).accordion(); 
+	$( "#accordion" ).accordion(); 
   //var nav_tree = dhtmlXTreeFromHTML("nav_panel");
 
 	$(".leftslidingmenu").width(panel_width);

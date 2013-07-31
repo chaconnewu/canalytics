@@ -13,7 +13,7 @@ function caCalendar(el, options) {
 
 caCalendar.prototype.metadata = ['title','start','end', 'location', 'people', 'relationship'];
 
-caCalendar.prototype.rinterval = ['day','week','month'];
+caCalendar.prototype.rinterval = ['day(s)','week(s)','month(s)'];
 
 caCalendar.prototype.defaultoptions = {
 	header: {
@@ -43,29 +43,28 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 	var p_options = '<option></option>';
 	var r_options = '<option></option>';
 	var l_options = '<option></option>';
+	var people_list = [];
 	
-	if(calEvent.people) {
-		var people_list = calEvent.people.split(',');
-		for(var i in capeople.people_list) {
-			if(people_list.indexOf(capeople.people_list[i]) > -1) {
-				p_options += '<option value="' + capeople.people_list[i] + '" selected>' + capeople.people_list[i] + '</option>';
-			} else {
-				p_options += '<option value="' + capeople.people_list[i] + '">' + capeople.people_list[i] + '</option>';
-			}
+	if(calEvent.people) people_list = calEvent.people.split(',');
+	
+	for(var i in capeople.people_list) {
+		if(people_list.indexOf(capeople.people_list[i]) > -1) {
+			p_options += '<option value="' + capeople.people_list[i] + '" selected>' + capeople.people_list[i] + '</option>';
+		} else {
+			p_options += '<option value="' + capeople.people_list[i] + '">' + capeople.people_list[i] + '</option>';
 		}
-		
-		for(var i in capeople.relation_list) {
-			if(calEvent.relationship == capeople.relation_list[i]) {
-				r_options += '<option value="' + capeople.relation_list[i] + '" selected>' + capeople.relation_list[i] + '</option>';
-			} else {
-				r_options += '<option value="' + capeople.relation_list[i] + '">' + capeople.relation_list[i] + '</option>';
-			}
+	}
+	
+	for(var i in capeople.relation_list) {
+		if(capeople.relation_list[i] === calEvent.relationship) {
+			r_options += '<option value="' + capeople.relation_list[i] + '" selected>' + capeople.relation_list[i] + '</option>';
+		} else {
+			r_options += '<option value="' + capeople.relation_list[i] + '">' + capeople.relation_list[i] + '</option>';
 		}
 	}
 	
 	var i_options = '<option></option>';
 	
-	if(calEvent.rinterval) {
 		for(var i in this.rinterval) {
 			if(calEvent.rinterval == this.rinterval[i]) {
 				i_options += '<option value="' + this.rinterval[i] + '" selected>' + this.rinterval[i] + '</option>';
@@ -73,19 +72,16 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view){
 				i_options += '<option value="' + this.rinterval[i] + '">' + this.rinterval[i] + '</option>';
 			}
 		}
-	}
 	
 	calEvent.rrepeat = (calEvent.rrepeat==0)?'':calEvent.rrepeat
 	
-	if(calEvent.location) {
 		for(var i in calocation.location_list) {
-			if(calEvent.location == calocation.location_list[i]) {
+			if(calocation.location_list[i] === calEvent.location) {
 				l_options += '<option value="' + calocation.location_list[i] + '" selected>' + calocation.location_list[i] + '</option>';
 			} else {
 				l_options += '<option value="' + calocation.location_list[i] + '">' + calocation.location_list[i] + '</option>';
 			}
 		}
-	}
 	
 	var html = "<form id='editevent' name='editevent' action='/calendars/events/" + calEvent.id + "' method='put'><input type='hidden' name='id' value='" + calEvent.id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><input type='hidden' name='gid' value='" + window.gid + "'><input type='hidden' name='rindex' value=" + calEvent.rindex + "><input type='hidden' name='repeating' value=" + calEvent.repeating + "><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>" + calEvent.title + "</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + start + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + end + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat' value=" + calEvent.rrepeat + "> <select name='rinterval'>" + i_options + "</select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after' value='" + end_after + "'><br><select name='location' data-placeholder='Location...' class='chzn-select' tabindex='4'>" + l_options + "</select><br><select name='people' data-placeholder='People...' class='chzn-select' multiple tabindex='1'>" + p_options + "</select><br><select name='relationship' data-placeholder='Relation...' class='chzn-select' tabindex='4'>" + r_options + "</select><br><input id='calput' class='form_btn' type='button' value='Done'><input id='caldel' class='form_btn' type='button' value='Delete'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
 	
@@ -324,7 +320,7 @@ caCalendar.prototype.showNewEventEditor = function(date, allDay, jsEvent, view) 
 		l_options = l_options + '<option value="' + calocation.location_list[i] + '">' + calocation.location_list[i] + '</option>';
 	}
 	
-	var html = "<form id='newevent' name='newevent'><input type='hidden' name='id' value='" + id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><input type='hidden' name='gid' value='" + window.gid + "'><input type='hidden' name='rindex' value=0><input type='hidden' name='repeating' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select name='rinterval'><option value=''></option><option value='day'>Day(s)</option><option value='week'>Week(s)</option><option value='month'>Month(s)</option></select><br><label for='endond'>End On Date:</label><input type='datetime-local' name='end_after'><br><select name='location' data-placeholder='Location...' class='chzn-select' tabindex='4'>" + l_options + "</select><br><select name='people' data-placeholder='People...' class='chzn-select' multiple tabindex='1'>" + p_options + "</select><br><select name='relationship' data-placeholder='Relation...' class='chzn-select' tabindex='4'>" + r_options + "</select><br><input id='calpost' class='form_btn' type='button' value='Done'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
+	var html = "<form id='newevent' name='newevent'><input type='hidden' name='id' value='" + id + "'><input type='hidden' name='ca_calendars_id' value='" + win.attr('id') + "'><input type='hidden' name='ca_calendars_ca_cases_id' value='" + window.cid + "'><input type='hidden' name='gid' value='" + window.gid + "'><input type='hidden' name='rindex' value=0><input type='hidden' name='repeating' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select name='rinterval'><option value=''></option><option value='day(s)'>Day(s)</option><option value='week(s)'>Week(s)</option><option value='month(s)'>Month(s)</option></select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after'><br><select name='location' data-placeholder='Location...' class='chzn-select' tabindex='4'>" + l_options + "</select><br><select name='people' data-placeholder='People...' class='chzn-select' multiple tabindex='1'>" + p_options + "</select><br><select name='relationship' data-placeholder='Relation...' class='chzn-select' tabindex='4'>" + r_options + "</select><br><input id='calpost' class='form_btn' type='button' value='Done'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
 	el.showBalloon({
 		id: 'neweditorballoon',
 		offsetX: jsEvent.clientX-el.offset().left-el.outerWidth()+10,
@@ -576,7 +572,7 @@ caCalendar.prototype.searchLocations = function(loc, el, callback){
 					}
 				})
 			} else {
-				$("#neweditorballoon").append("<div id='location_alert'>We could not find the location <b>" + loc + "</b>. Make sure all street and city names are spelled correctly.</div>");
+				$("#"+el).append("<div id='location_alert'>We could not find the location <b>" + loc + "</b>. Make sure all street and city names are spelled correctly.</div>");
 				callback(null);
 			}
 		})

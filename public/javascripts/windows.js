@@ -84,11 +84,13 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 						cagraph = new caGraph(win, data);
 					})
 					break;
+				case 'notepad':
+					win.html("<iframe name='embed_readwrite' src='http://localhost:9001/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width=600 height=400></iframe>");
 				default:
 					break;
 			}
 		}
-		
+
 		bringToTop(win.parent()[0]);
 
 		return false;

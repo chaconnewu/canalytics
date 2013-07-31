@@ -82,13 +82,7 @@ $(document).ready(function() {
 	var mapid = CryptoJS.MD5("camap").toString();
 	var camap = windows.createWindow(mapid, "camap", x, y, false, 450, 450);
 	window.map = new google.maps.Map(camap[0], window.mapOptions);
-
-	
-	//initialize notepad
-	var padid = CryptoJS.MD5("canotepad").toString();
-	var win_pad = windows.createWindow(padid, "canotepad", x, y, false, 610, 410);
-	win_pad.html("<iframe name='embed_readwrite' src='http://localhost:9001/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width=600 height=400></iframe>");
-	*/
+*/
 	
 	//register event triggers
 	$(".lefttrigger").click(function(){

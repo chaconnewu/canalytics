@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-02-20 19:44:30Z
+** Built at: 2013-07-25 19:38:09Z
 */
 
 
@@ -1035,7 +1035,6 @@
       if (this.mouseIsDown || this.viewer.isShown()) {
         return false;
       }
-			var x = $(event.target).parents('.annotator-hl').andSelf();
       annotations = $(event.target).parents('.annotator-hl').andSelf().map(function() {
         return $(this).data("annotation");
       });
@@ -1232,7 +1231,7 @@
       focus: 'annotator-focus'
     };
 
-    Editor.prototype.html = "<div class=\"annotator-outer annotator-editor\">\n  <form class=\"annotator-widget\">\n    <ul class=\"annotator-listing\"></ul>\n    <div class=\"annotator-controls\">\n      <a href=\"#cancel\" class=\"annotator-cancel\">" + _t('Cancel') + "</a>\n<a href=\"#save\" class=\"annotator-save annotator-focus\">" + _t('Save') + "</a>\n    </div>\n  </form>\n</div>";
+    Editor.prototype.html = "<div class=\"annotator-outer annotator-editor\">\n  <form class=\"annotator-widget\">\n    <ul class=\"annotator-listing\"></ul>\n      <div class=\"annotator-status\" />\n    <div class=\"annotator-controls\">\n      <a href=\"#cancel\" class=\"annotator-cancel\">" + _t('Cancel') + "</a>\n<a href=\"#save\" class=\"annotator-save annotator-focus\">" + _t('Save') + "</a>\n    </div>\n  </form>\n</div>";
 
     Editor.prototype.options = {};
 
@@ -1284,17 +1283,20 @@
     Editor.prototype.submit = function(event) {
       var field, _k, _len2, _ref2;
       util.preventEventDefault(event);
-      _ref2 = this.fields;
-      for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-        field = _ref2[_k];
-        field.submit(field.element, this.annotation);
+      if (!$(event.currentTarget).hasClass('dom-disabled')) {
+        _ref2 = this.fields;
+        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+          field = _ref2[_k];
+          field.submit(field.element, this.annotation);
+        }
+        this.publish('save', [this.annotation]);
       }
-      this.publish('save', [this.annotation]);
       return this.hide();
     };
 
     Editor.prototype.addField = function(options) {
-      var dropdownl, element, field, input;
+      var element, field, input, location, person, relation, superthis, _k, _l, _len2, _len3, _len4, _m, _ref2, _ref3, _ref4;
+      superthis = this;
       field = $.extend({
         id: 'annotator-field-' + util.uuid(),
         type: 'input',
@@ -1311,49 +1313,99 @@
           break;
         case 'input':
         case 'checkbox':
-        case 'datetime':
           input = $('<input />');
           break;
-        case 'select1':
-          input = $('<select data-placeholder="Attendees..." class="chzn-select" multiple tabindex="4" style="width:300px"/>');
+        case 'datetime-local':
+          input = $('<input type="datetime-local" />');
           break;
-        case 'select2':
-          input = $('<select data-placeholder="Relations..." class="chzn-select" multiple tabindex="4" style="width:300px"/>');
+        case 'select-interval':
+          input = $('<select class="field-interval" data-placeholder="Interval..." tabindex="3"><option value=""></option><option value="day(s)">day(s)</option><option value="week(s)">week(s)</option><option value="month(s)">month(s)</option></select>');
+          break;
+        case 'select-location':
+          input = $('<select class="field-location" data-placeholder="Location..." tabindex="4"/>');
+          break;
+        case 'select-people':
+          input = $('<select class="field-people" multiple data-placeholder="People..." tabindex="1"/>');
+          break;
+        case 'select-relation':
+          input = $('<select class="field-relation" data-placeholder="Relation..." tabindex="4"/>');
       }
       element.append(input);
       input.attr({
         id: field.id,
         placeholder: field.label
       });
-      if (field.type === 'checkbox') {
-        input[0].type = 'checkbox';
-        element.addClass('annotator-checkbox');
-        element.append($('<label />', {
-          "for": field.id,
-          html: field.label
-        }));
-      }
-      if (field.type === 'datetime') {
-        element.addClass('annotator-datetime');
-        element.find(':input').datetimepicker();
-      }
-      if (field.type === 'select1') {
-        dropdownl = element.find('select');
-        dropdownl.append($('<option>, { value: "" }'));
-        dropdownl.append($('<option>, { value: "kate" }').text("kate"));
-        dropdownl.append($('<option>, { value: "luke" }').text("luke"));
-        dropdownl.append($('<option>, { value: "ben" }').text("ben"));
-        dropdownl.append($('<option>, { value: "dan" }').text("dan"));
-        dropdownl.append($('<option>, { value: "lisa" }').text("lisa"));
-      }
-      if (field.type === 'select2') {
-        dropdownl = element.find('select');
-        dropdownl.append($('<option>, { value: "" }'));
-        dropdownl.append($('<option>, { value: "kate" }').text("cousins"));
-        dropdownl.append($('<option>, { value: "luke" }').text("classmates"));
-        dropdownl.append($('<option>, { value: "luke" }').text("owemoney"));
-      }
       this.element.find('ul:first').append(element);
+      switch (field.type) {
+        case 'datetime-local':
+          element.prepend($('<span>' + field.label + '</span>'));
+          break;
+        case 'select-interval':
+          $('.field-interval').chosen();
+          break;
+        case 'select-location':
+          $('.field-location').append('<option value=""></option>');
+          _ref2 = window.top.calocation.location_list;
+          for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+            location = _ref2[_k];
+            $('.field-location').append('<option value="' + location + '">' + location + '</option>');
+          }
+          $('.field-location').chosen({
+            create_option: function(term) {
+              var that;
+              that = this;
+              return field.search(term, superthis.element, function(loc_selected) {
+                if (loc_selected) {
+                  window.top.calocation.location_list.push(loc_selected);
+                  return that.append_option({
+                    value: loc_selected,
+                    text: loc_selected
+                  });
+                }
+              });
+            },
+            persistent_create_option: true,
+            allow_single_deselect: true
+          });
+          break;
+        case 'select-people':
+          $('.field-people').append('<option value=""></option>');
+          _ref3 = window.top.capeople.people_list;
+          for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+            person = _ref3[_l];
+            $('.field-people').append('<option value="' + person + '">' + person + '</option>');
+          }
+          $('.field-people').chosen({
+            create_option: function(term) {
+              window.top.capeople.people_list.push(term);
+              return this.append_option({
+                value: term,
+                text: term
+              });
+            },
+            persistent_create_option: true,
+            allow_single_deselect: true
+          });
+          break;
+        case 'select-relation':
+          $('.field-relation').append('<option value=""></option>');
+          _ref4 = window.top.capeople.relation_list;
+          for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
+            relation = _ref4[_m];
+            $('.field-relation').append('<option value="' + relation + '">' + relation + '</option>');
+          }
+          $('.field-relation').chosen({
+            create_option: function(term) {
+              window.top.capeople.people_list.push(term);
+              return this.append_option({
+                value: term,
+                text: term
+              });
+            },
+            persistent_create_option: true,
+            allow_single_deselect: true
+          });
+      }
       this.fields.push(field);
       return field.element;
     };

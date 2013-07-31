@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-02-26 22:11:45Z
+** Built at: 2013-07-17 15:21:14Z
 */
 
 
@@ -17,6 +17,10 @@
   Annotator.Plugin.Concurrent = (function(_super) {
 
     __extends(Concurrent, _super);
+
+    function Concurrent() {
+      return Concurrent.__super__.constructor.apply(this, arguments);
+    }
 
     Concurrent.prototype.events = {
       'annotationEditorShown': 'annotationEditorShown',
@@ -34,17 +38,8 @@
           f = c === 'x' ? r : r & 0x7 | 0x8;
           return f.toString(16);
         });
-      },
-      keylist: {
-        Notes: 'text',
-        Location: 'location'
       }
     };
-
-    function Concurrent(element, options) {
-      Concurrent.__super__.constructor.apply(this, arguments);
-      this.shareconn = new sharejs.Connection('http://localhost:3000/channel');
-    }
 
     Concurrent.prototype.pluginInit = function() {
       if (!Annotator.supported()) {
@@ -53,34 +48,20 @@
     };
 
     Concurrent.prototype.annotationEditorShown = function(editor, annotation) {
-      var id, _this;
-      _this = this;
-      if (!annotation.id) {
-        id = _this._generateUUID();
-        annotation.id = id;
-      }
-      return editor.fields.forEach(function(field) {
-        if (field.type === 'textarea') {
-          return _this.shareconn.open(annotation.id + field.label, 'text', function(err, doc) {
-            if (!doc.snapshot && annotation.text) {
-              doc.insert(0, annotation.text);
-            }
-            return doc.attach_textarea(field.element.firstChild);
-          });
+      return $('.annotator-status').load('/sync', {
+        id: annotation.id
+      }, function(data) {
+        if (data.indexOf('please wait') !== -1) {
+          $('.annotator-widget :input').prop('disabled', true);
+          return $('.annotator-save').addClass('dom-disabled');
         }
       });
     };
 
     Concurrent.prototype.annotationEditorHidden = function(editor) {
-      var _this;
-      _this = this;
-      return Object.keys(this.shareconn.docs).forEach(function(doc) {
-        editor.fields.forEach(function(field) {
-          if (field.type === 'textarea') {
-            return _this.shareconn.docs[doc].detach_textarea(field.element.firstChild);
-          }
-        });
-        return _this.shareconn.docs[doc].close();
+      return $('.annotator-status').load('/desync', function() {
+        $('.annotator-widget :input').prop('disabled', false);
+        return $('.annotator-save').removeClass('dom-disabled');
       });
     };
 

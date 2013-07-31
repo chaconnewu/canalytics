@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-02-26 19:54:40Z
+** Built at: 2013-07-25 19:12:56Z
 */
 
 
@@ -79,7 +79,10 @@
           if (!(data.id != null)) {
             console.warn(Annotator._t("Warning: No ID returned from server for annotation "), annotation);
           }
-          return _this.updateAnnotation(annotation, data);
+          _this.updateAnnotation(annotation, data);
+          if (annotation.start) {
+            return _this.createEvent;
+          }
         });
       } else {
         return this.updateAnnotation(annotation, {});

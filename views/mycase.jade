@@ -7,7 +7,7 @@ block append head
 	link(rel="stylesheet", href="/stylesheets/fullcalendar.css")
 	link(rel="stylesheet", href="/stylesheets/events.css")
 	link(rel="stylesheet", href="/stylesheets/dhtmlxscheduler_dhx_terrace.css")
-	link(rel="stylesheet", href="/stylesheets/annotator.min.css")
+	link(rel="stylesheet", href="/stylesheets/annotator.css")
 	link(rel="stylesheet", href="/stylesheets/d3graph.css")
 	script(src="http://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/md5.js")
 	script(src="/javascripts/jquery-ui.min.js")
@@ -67,7 +67,7 @@ block content
 						a.heading(href='notepads') Notepads
 						ul#notepads
 							li
-								a(href="#", onclick="return caWindows.openWindow(this, null, 'canotepad');") Notepad I
+								a(href="#", onclick="return caWindows.openWindow(this, 'testpad', 'canotepad', 'notepad', 610, 410);") Notepad I
 		a.lefttrigger(href="#")
 	div.right.sidepanel
 		div.rightslidingmenu

@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-02-08 18:57:16Z
+** Built at: 2013-07-26 17:12:48Z
 */
 
 
@@ -20,7 +20,7 @@
     __extends(People, _super);
 
     function People() {
-      this.setAnnotationRelationship = __bind(this.setAnnotationRelationship, this);
+      this.setAnnotationRelation = __bind(this.setAnnotationRelation, this);
 
       this.setAnnotationPeople = __bind(this.setAnnotationPeople, this);
 
@@ -41,37 +41,39 @@
         return people;
       },
       stringifyPeople: function(array) {
-        return array.join(" ");
+        return array.join(",");
       }
     };
 
-    People.prototype.field = null;
+    People.prototype.field1 = null;
 
-    People.prototype.input = null;
+    People.prototype.field2 = null;
+
+    People.prototype.input1 = null;
+
+    People.prototype.input2 = null;
 
     People.prototype.pluginInit = function() {
       if (!Annotator.supported()) {
         return;
       }
       this.field1 = this.annotator.editor.addField({
-        type: 'select1',
-        label: Annotator._t('Attendees'),
+        type: 'select-people',
+        label: 'People...',
         load: this.updateField1,
         submit: this.setAnnotationPeople
       });
       this.field2 = this.annotator.editor.addField({
-        type: 'select2',
-        label: Annotator._t('Relationship'),
+        type: 'select-relation',
+        label: 'Relation...',
         load: this.updateField2,
-        submit: this.setAnnotationRelationship
+        submit: this.setAnnotationRelation
       });
       this.annotator.viewer.addField({
         load: this.updateViewer
       });
       this.input1 = $(this.field1).find('select');
-      this.input2 = $(this.field2).find('select');
-      this.annotator.subscribe('annotationEditorShown', this.loadGraph);
-      return this.annotator.subscribe('annotationEditorSubmit', this.updateGraph);
+      return this.input2 = $(this.field2).find('select');
     };
 
     People.prototype.parsePeople = function(string) {
@@ -90,29 +92,39 @@
     People.prototype.updateGraph = function(editor, annotation) {};
 
     People.prototype.updateField1 = function(field, annotation) {
-      var value;
-      value = '';
-      if (annotation.people) {
-        value = this.stringifyPeople(annotation.people);
+      var people_list;
+      people_list = [];
+      if (annotation.people != null) {
+        people_list = annotation.people;
       }
-      return this.input1.val(value);
+      $(field).find('select option').each(function() {
+        if (people_list.indexOf($(this).val()) > -1) {
+          return $(this).attr('selected', 'selected');
+        }
+      });
+      return $('.field-people').trigger('liszt:updated');
     };
 
     People.prototype.updateField2 = function(field, annotation) {
-      var value;
-      value = '';
-      if (annotation.relationship) {
-        value = this.stringifyPeople(annotation.relationship);
-      }
-      return this.input2.val(value);
+      $(field).find('select option').each(function() {
+        if ($(this).val() === annotation.relation) {
+          return $(this).attr('selected', 'selected');
+        }
+      });
+      return $('.field-relation').trigger('liszt:updated');
     };
 
     People.prototype.setAnnotationPeople = function(field, annotation) {
-      return annotation.people = this.parsePeople(this.input1.val());
+      if ((this.input1.val() != null) && this.input1.val() !== '') {
+        return annotation.people = this.input1.val();
+      }
     };
 
-    People.prototype.setAnnotationRelationship = function(field, annotation) {
-      return annotation.relationship = this.parsePeople(this.input2.val());
+    People.prototype.setAnnotationRelation = function(field, annotation) {
+      if ((this.input2.val() != null) && this.input2.val() !== '') {
+        annotation.relation = this.input2.val();
+        return annotation.gid = window.top.gid;
+      }
     };
 
     People.prototype.updateViewer = function(field, annotation) {
@@ -123,7 +135,7 @@
           string = $.map(annotation.people, function(person) {
             return '<span class="annotator-person">' + Annotator.$.escape(person) + '</span>';
           }).join(' ');
-          return string = string + " are in a relationship " + annotation.relationship;
+          return string = string + '<br>' + annotation.relation;
         });
       } else {
         return field.remove();

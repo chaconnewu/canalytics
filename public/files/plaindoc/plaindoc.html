@@ -27,21 +27,25 @@
 		P.frame-contents-cjk { font-family: "Cambria" }
 		P.frame-contents-ctl { font-family: "Times New Roman" }
 		A:link { so-language: zxx }
+
+		.ui-dialog {
+			z-index: 999999999;
+		}
 	-->
 	</STYLE>
 	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js'></script>
-		<script src="http://localhost:3000/javascripts/jquery-ui.min.js"></script>
-	<script src="http://localhost:3000/javascripts/jquery-ui-timepicker-addon.js"></script>
-	<script src="http://localhost:3000/javascripts/jquery-ui-sliderAccess.js"></script>
-		<script src="http://localhost:3000/javascripts/chosen.jquery.min.js"></script>
-	<script src='http://localhost:3000/javascripts/annotator.js'></script>
-		<script src='http://localhost:3000/javascripts/annotator.filter.min.js'></script>
-			<script src='http://localhost:3000/javascripts/annotator.tags.min.js'></script>
-				<script src='http://localhost:3000/javascripts/annotator.location.js'></script>
-					<script src='http://localhost:3000/javascripts/annotator.time.js'></script>
-					<script src='http://localhost:3000/javascripts/annotator.people.js'></script>
-					<script src='http://localhost:3000/javascripts/annotator.store.js'></script>
-					<script src='http://localhost:3000/javascripts/annotator.concurrent.js'></script>
+		<script src="/javascripts/jquery-ui.min.js"></script>
+	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
+	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
+		<script src="/javascripts/chosen.jquery.min.js"></script>
+	<script src='/javascripts/annotator.js'></script>
+		<script src='/javascripts/annotator.filter.min.js'></script>
+			<script src='/javascripts/annotator.tags.min.js'></script>
+				<script src='/javascripts/annotator.location.js'></script>
+					<script src='/javascripts/annotator.time.js'></script>
+					<script src='/javascripts/annotator.people.js'></script>
+					<script src='/javascripts/annotator.store.js'></script>
+					<script src='/javascripts/annotator.concurrent.js'></script>
 					<script src='http://maps.googleapis.com/maps/api/js?key=AIzaSyBIL6BEuH3DL94kt_uAyUCQvAD4q5cieEc&sensor=false'></script>
 					<link rel="stylesheet" href="http://code.jquery.com/ui/1.8.23/themes/smoothness/jquery-ui.css">
 					<link rel="stylesheet" href="/stylesheets/chosen.css">
@@ -637,7 +641,7 @@ was doing laps in the White building swimming pool on Oct 9th, from
 					})
 					.annotator('addPlugin', 'Concurrent');
 						var options = {
-							docid: '0275512a5ae766024248c630066dde71'
+							ca_doc_uuid: '0275512a5ae766024248c630066dde71'
 						};
 						
 						MyAnnotator = $(document.body).data('annotator');

@@ -4,20 +4,10 @@ clientId = null, nickname = null, currentRoom = null, socket = io.connect('http:
 // the 'connect' event
 socket.on('connect', function() {
 	// firing back the connect event to the server
-	// and sending the nickname for the connected client
+	// and sending the room name for the connected client
 	socket.emit('connect', {
-		nickname: account
+		room: ca_case_id
 	});
-});
-
-// after the server created a client for us, the ready event
-// is fired in the server with our clientId, now we can start
-socket.on('ready', function(data) {
-	// saving the clientId locally
-	clientId = data.clientId;
-
-	// join the client to the current case
-	joinRoom(caseName);
 });
 
 // after the initialize, the server sends a list of
@@ -35,20 +25,192 @@ socket.on('roomslist', function(data) {
 	}
 });
 
+socket.on('reloadlocation', function(data) {
+	window.calocation.location_list = [];
+
+	for (var i = 0; i < data.locationlist.length; i++) {
+		window.calocation.location_list.push(data.locationlist[i].location);
+	}
+
+	if (window.camap) {
+		window.camap.reload(data);
+	}
+});
+
+socket.on('reloadrelation', function(data) {
+	window.capeople.people_list = [];
+	window.capeople.relation_list = [];
+
+	for (var i = 0; i < data.relationlist.length; i++) {
+		window.capeople.relation_list.push(data.relationlist[i].relation);
+	}
+
+	for (var i = 0; i < data.peoplelist.length; i++) {
+		window.capeople.people_list.push(data.peoplelist[i].name);
+	}
+
+	if (window.cagraph) {
+		window.cagraph.reload(data.graphlist);
+	}
+})
+
+socket.on('createevent', function(data) {
+	if (window.cacalendar) {
+		for (var i in data.eventlist) {
+			window.cacalendar.el.fullCalendar('renderEvent', data.eventlist[i]);
+		}
+	}
+				$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+});
+
+socket.on('updateevent', function(data) {
+	if (window.cacalendar) {
+		window.cacalendar.el.fullCalendar('removeEvents', data.id);
+		for (var i in data.eventlist) {
+			window.cacalendar.el.fullCalendar('renderEvent', data.eventlist[i]);
+		}
+	}
+					$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].substring(0,10) + '...</b> is updated by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+});
+
+socket.on('deleteevent', function(data) {
+	if (window.cacalendar) {
+		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
+							$('#activitylog').append('<span class="logtext">event <b>' + e[0].title.substring(0,10) + '...</b> is deleted by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+		window.cacalendar.el.fullCalendar('removeEvents', data.id);
+	}
+});
+
+socket.on('createrelation', function(data) {
+	if (window.cagraph) {
+		window.cagraph.load(data);
+	}
+	var people = "";
+	for(var i in data.relationlist){
+		people += data.relationlist[i].name + ' ';
+	}
+						$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+});
+
+socket.on('updaterelation', function(data) {
+	if (window.cagraph) {
+		window.cagraph.load(data);
+	}
+							$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + data.relationlist[0].people + ' is updated by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+});
+
+socket.on('deleterelation', function(data) {
+	if (window.cagraph) {
+		window.cagraph.unload(data.id);
+	}
+});
+
 // when someone creates/updates an annotation, the server push it to
 // our client through this event with a relevant data
 socket.on('DBAnnotationUpdated', function(data) {
-	//display the message in the console
-	var myAnnotator = $("#iframe_" + data.docid).get(0).contentWindow.MyAnnotator;
-	if (myAnnotator) {
-		var i = __indexOf(data, myAnnotator.plugins['Store'].annotations);
-		if (i < 0) {
-			myAnnotator.plugins['Store'].registerAnnotation(data);
-			myAnnotator.setupAnnotation(data, false);
-		} else {
-			var annotation = myAnnotator.plugins['Store'].annotations[i];
-			$.extend(annotation, data);
-			$(annotation.highlights).data('annotation', annotation);
+	var annotation;
+
+	annotation = data.results[0];
+	annotation.ranges = [];
+	annotation.ranges[0] = {
+		start: annotation.range_start,
+		startOffset: annotation.startOffset,
+		end: annotation.range_end,
+		endOffset: annotation.endOffset
+	};
+	if (annotation.people) {
+		annotation.people = annotation.people.split(",")
+	}
+
+	var ifm = $("#iframe_" + annotation.ca_doc_uuid).get(0);
+	if (ifm) {
+		var myAnnotator = ifm.contentWindow.MyAnnotator;
+		if (myAnnotator) {
+			var i = __indexOf(annotation, myAnnotator.plugins['Store'].annotations);
+			if (i < 0) {
+				myAnnotator.plugins['Store'].registerAnnotation(annotation);
+				myAnnotator.setupAnnotation(annotation, false);
+			} else {
+				var old_annotation = myAnnotator.plugins['Store'].annotations[i];
+				$.extend(old_annotation, annotation);
+				$(old_annotation.highlights).data('annotation', old_annotation);
+			}
+		}
+	}
+
+var fields;
+	if (annotation.ca_location_location) {
+		if (calocation.location_list.indexOf(annotation.ca_location_location) < 0) {
+									$('#activitylog').append('<span class="logtext">location <b>' + annotation.ca_location_location + '</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+			calocation.location_list.push(annotation.ca_location_location);
+			
+			fields = $('.field-location', $("iframe").contents())
+			fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
+			fields.trigger("chosen:updated");
+			if (window.camap) {
+				$.get('/maps/locations/position/' + annotation.ca_location_location, function(results) {
+					window.camap.newMarker({
+						lat: results[0].lat,
+						lng: results[0].lng,
+						location: annotation.ca_location_location
+					});
+				});
+			}
+				fields = $("select[name='ca_location_location']");
+				fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
+				fields.trigger("chosen:updated");
+		}
+	}
+
+	if (annotation.people) {
+		for (var j in annotation.people) {
+			if (capeople.people_list.indexOf(annotation.people[j]) < 0) {
+				capeople.people_list.push(annotation.people[j]);
+				fields = $('.field-people', $("iframe").contents());
+				fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
+			fields.trigger("chosen:updated");
+					fields = $("select[name='people']")
+					fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
+								fields.trigger("chosen:updated");
+			
+			}
+		}
+	}
+	if (annotation.relation) {
+		if (capeople.people_list.indexOf(annotation.relation) < 0) {
+			capeople.relation_list.push(annotation.relation);
+			fields = $('.field-relation', $("iframe").contents());
+			fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
+						fields.trigger("chosen:updated");
+				fields = $("select[name='relation']");
+				fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
+							fields.trigger("chosen:updated");
+			
+		}
+	}
+	
+	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is updated by <font color=' + '"black">' + data.owner + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+});
+
+// when someone deletes an annotation, the server push it to
+// our client through this event with a relevant data
+socket.on('DBAnnotationDeleted', function(data) {
+	var ifm = $("#iframe_" + data.ca_doc_uuid).get(0);
+	if (ifm) {
+		var myAnnotator = ifm.contentWindow.MyAnnotator;
+		if (myAnnotator) {
+			var i = __indexOf(data, myAnnotator.plugins['Store'].annotations);
+			if (i >= 0) {
+				var annotation = myAnnotator.plugins['Store'].annotations[i];
+						$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is deleted by <font color=' + '"black">' + data.owner + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+				var h, _k, _len2, _ref1;
+				_ref1 = annotation.highlights;
+				for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+					h = _ref1[_k];
+					$(h).replaceWith(h.childNodes);
+				}
+				myAnnotator.plugins['Store'].unregisterAnnotation(annotation);
+			}
 		}
 	}
 });
@@ -59,90 +221,119 @@ socket.on('DBEventUpdated', function(data) {
 	var el = $("#" + data.el);
 
 	if (el.length > 0) {
-		var results = data.results;
+		var results = data.eventlist;
 		var e = el.fullCalendar('clientEvents', results[0].id);
 
-		if (e.length > 0) {
+var fields;
+		if (e.length != results.length) {
+			el.fullCalendar('removeEvents', results[0].id);
 			for (var i = 0; i < results.length; i++) {
-				$.extend(e[i], results[i], {
-					className: 'caevent'
-				});
-				el.fullCalendar('updateEvent', e[i]);
-			}
-		} else {
-			for (var i = 0; i < results.length; i++) {
-				$.extend(results[i], {
-					className: 'caevent'
-				});
 				el.fullCalendar('renderEvent', results[i]);
-			}
-		}
+				if (results[i].ca_location_location) {
+					if (calocation.location_list.indexOf(results[i].ca_location_location) < 0) {
+															$('#activitylog').append('<span class="logtext">location <b>' + results[i].ca_location_location + '</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+						calocation.location_list.push(results[i].ca_location_location);
+									fields = $('select[name="locations"]');
+									fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
+									fields.trigger("chosen:updated");
+						fields = $('.field-location', $("iframe").contents());
+						fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
+						fields.trigger("chosen:updated");
+						if (window.camap) {
+							$.get('/maps/locations/position/' + results[i].ca_location_location, function(loc) {
+								window.camap.newMarker({
+									lat: loc[0].lat,
+									lng: loc[0].lng,
+									location: loc[0].location
+								});
 
-		for (var i = 0; i < results.length; i++) {
-			if (results[i].people) {
-				for (var j in results[i].people) {
-					if (capeople.people_list.indexOf(results[i].people[j]) == -1) {
-						capeople.people_list.push(results[i].people[j]);
+							});
+						}
+							fields = $("select[name='ca_location_location']");
+							fields.append('<option value="' + results[i].ca_location_location + '">' + results[i].ca_location_location + '</option>');
+							fields.trigger("chosen:updated");
+					}
+				}
+				if (results[i].people) {
+					var peoplelist = results[i].people.split(',');
+					for (var j in peoplelist) {
+						if (capeople.people_list.indexOf(peoplelist[j]) < 0) {
+							capeople.people_list.push(peoplelist[j]);
+								fields = $('.field-people', $("iframe").contents())
+								fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
+								fields.trigger("chosen:updated");
+								fields = $("select[name='people']")
+								fields.append('<option value="' + peoplelist[j] + '">' + peoplelist[j] + '</option>');
+								fields.trigger("chosen:updated");
+							
+						}
+					}
+				}
+				if (results[i].relation) {
+					if (capeople.relation_list.indexOf(results[i].relation) < 0) {
+						capeople.relation_list.push(results[i].relation);
+									fields = $('.field-relation', $("iframe").contents());
+									fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
+									fields.trigger("chosen:updated");
+							fields = $("select[name='relation']");
+							fields.append('<option value="' + results[i].relation + '">' + results[i].relation + '</option>');
+							fields.trigger("chosen:updated");
 					}
 				}
 			}
-			if (results[i].relationship && results[i].relationship != '') {
-				if (capeople.relation_list.indexOf(results[i].relationship) == -1) {
-					capeople.relation_list.push(results[i].relationship);
+		} else {
+			for (var i = 0; i < results.length; i++) {
+				$.extend(e[i], results[i]);
+				el.fullCalendar('updateEvent', e[i]);
+				if (results[i].ca_location_location) {
+					if (calocation.location_list.indexOf(results[i].ca_location_location) < 0) {
+															$('#activitylog').append('<span class="logtext">location <b>' + results[i].ca_location_location + '</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+						calocation.location_list.push(results[i].ca_location_location);
+						fields = $('.field-location', $("iframe").contents());
+						fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
+						fields.trigger("chosen:updated");
+						if (window.camap) {
+							$.get('/maps/locations/position/' + results[i].ca_location_location, function(results) {
+								window.camap.newMarker({
+									lat: results[0].lat,
+									lng: results[0].lng,
+									location: annotation.ca_location_location
+								});
+							});
+						}
+							fields = $("select[name='ca_location_location']");
+							fields.append('<option value="' + results[i].ca_location_location + '">' + results[i].ca_location_location + '</option>');
+							fields.trigger("chosen:updated");
+					}
+				}
+				if (results[i].people) {
+					var peoplelist = results[i].people.split(',');
+					for (var j in peoplelist) {
+						if (capeople.people_list.indexOf(peoplelist[j]) < 0) {
+							capeople.people_list.push(peoplelist[j]);
+								fields = $('.field-people', $("iframe").contents());
+								fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
+								fields.trigger("chosen:updated");
+								fields = $("select[name='people']");
+								fields.append('<option value="' + peoplelist[j] + '">' + peoplelist[j] + '</option>');
+								fields.trigger("chosen:updated");
+						}
+					}
+				}
+				if (results[i].relation) {
+					if (capeople.relation_list.indexOf(results[i].relation) < 0) {
+						capeople.relation_list.push(results[i].relation);
+			fields = $('.field-relation', $("iframe").contents())
+			fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
+			fields.trigger("chosen:updated");
+						fields =	$("select[name='relation']");
+						fields.append('<option value="' + results[i].relation + '">' + results[i].relation + '</option>');
+						fields.trigger("chosen:updated");
+					}
 				}
 			}
 		}
-	}
-
-	if (window.cagraph) {
-		if (data.r_insert) {
-			window.cagraph.load(data.r_insert);
-		}
-		if (data.r_delete) {
-			window.cagraph.unload(data.r_delete);
-		}
-	}
-});
-
-// when someone deletes an event, the server push it to
-// our client through this event with the event id
-socket.on('DBEventDeleted', function(data) {
-	var el = $("#" + data.el);
-
-	if (el.length > 0) {
-		var e = el.fullCalendar('clientEvents', data.id);
-
-		if (data.mode) {
-			//deleting a recurring event
-			if (data.mode == 'da') {
-				//delete all future events
-				var count = e[e.length - 1].rindex;
-				var id = data.id;
-				var idx = data.idx;
-
-				el.fullCalendar('removeEvents', function(eventObject) {
-					return (eventObject.id == id) && (eventObject.rindex >= idx);
-				});
-			} else if (data.mode == 'do') {
-				//delete only this event
-				var id = calEvent.id;
-				var idx = calEvent.rindex;
-
-				el.fullCalendar('removeEvents', function(eventObject) {
-					return (eventObject.id == id) && (eventObject.rindex == idx)
-				});
-			} else {
-				el.fullCalendar('removeEvents', data.id);
-			}
-		} else {
-			el.fullCalendar('removeEvents', data.id);
-		}
-
-	}
-	if (window.cagraph) {
-		if (data.r_delete) {
-			window.cagraph.unload(data.r_delete);
-		}
+					$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is updated by <font color=' + '"black">' + data.owner + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 	}
 });
 
@@ -150,18 +341,16 @@ socket.on('DBEventDeleted', function(data) {
 // with the clients in this room
 socket.on('roomclients', function(data) {
 	// add the room name to the rooms list
-	addRoom(data.room, false);
-
+	//addRoom(data.room, false);
 	// set the current room
-	setCurrentRoom(data.room);
-
+	//setCurrentRoom(data.room);
 	// announce a welcome message
 	console.log('Welcome to the room: ' + data.room + "!");
 
-	// add the clients to the clients list
+	// add the client to the clients list
 	addClient({
-		nickname: nickname,
-		clientId: clientId
+		username: username,
+		//userid: clientId
 	}, false, true);
 	for (var i = 0, len = data.clients.length; i < len; i++) {
 		if (data.clients[i]) {
@@ -195,7 +384,6 @@ socket.on('presence', function(data) {
 // add a room to the rooms list, socket.io may add
 // a trailing '/' to the name so we are clearing it
 
-
 function addRoom(name, announce) {
 	// clear the trailing '/'
 	name = name.replace('/', '');
@@ -208,7 +396,6 @@ function addRoom(name, announce) {
 
 // remove a room from the rooms list
 
-
 function removeRoom(name, announce) {
 	// if announce is true, show a message about this room
 	if (announce) {
@@ -218,32 +405,30 @@ function removeRoom(name, announce) {
 
 // add a client to the clients list
 
-
 function addClient(client, announce, isMe) {
 	// if this is our client, mark him with color
+	console.log(client);
 	if (isMe) {
 		//$html.addClass('me');
 	}
 	// if announce is true, show a message about this client
 	if (announce) {
-		console.log(client.nickname + ' has joined the room');
+		console.log(client.username + ' has joined the room');
 	}
 };
 
 // remove a client from the clients list
 
-
 function removeClient(client, announce) {
 	// if announce is true, show a message about this room
 	if (announce) {
-		console.log(client.nickname + ' has left the room');
+		console.log(client.username + ' has left the room');
 	}
 };
 
 // every client can join workspaces that he has access to, when join, 
 // the client is unsubscribed from the current room and then subscribed 
 // to the room he just created
-
 
 function joinRoom(room) {
 	if (room && room != currentRoom) {
@@ -263,10 +448,9 @@ function joinRoom(room) {
 // sets the current room when the client
 // makes a subscription
 
-
 function setCurrentRoom(room) {
 	currentRoom = room;
-}
+};
 
 // Search for item in an array of items,
 // if the id of the item equals the id of
@@ -277,7 +461,6 @@ function setCurrentRoom(room) {
 // the id is unique in the system, so there
 // should be at most one item matches.
 
-
 function __indexOf(item, items) {
 	for (var i = 0, len = items.length; i < len; i++) {
 		if (item.id == items[i].id) {
@@ -285,4 +468,4 @@ function __indexOf(item, items) {
 		}
 	}
 	return -1;
-}
+};

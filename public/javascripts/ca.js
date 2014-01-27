@@ -37,10 +37,11 @@ $(document).ready(function() {
 	});
 
 	$(".leftslidingmenu").width(panel_width);
-	$(".rightslidingmenu").width(panel_width);
+	//$(".rightslidingmenu").width(panel_width);
 	
 	var container = $("#container");
-	container.width($(window).width() - panel_width*2 - $(".lefttrigger").width()*2 - 25);
+	container.width($(window).width() - panel_width - $(".lefttrigger").width() - 25);
+	//container.width($(window).width() - panel_width*2 - $(".lefttrigger").width()*2 - 25);
 	container.height($(window).height());
 	container.css("left", panel_width+20);
 	
@@ -68,22 +69,6 @@ $(document).ready(function() {
         mapTypeId: google.maps.MapTypeId.ROADMAP
       };
 	
-	//initialize google map
-	/*var x = Math.random()*80;
-	var y = Math.random()*20;
-	window.geocoder = new google.maps.Geocoder();
-	window.markers = [];
-  window.mapOptions = {
-        center: new google.maps.LatLng(40.7933, -77.8603),
-        zoom: 16,
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-      };
-	
-	var mapid = CryptoJS.MD5("camap").toString();
-	var camap = windows.createWindow(mapid, "camap", x, y, false, 450, 450);
-	window.map = new google.maps.Map(camap[0], window.mapOptions);
-*/
-	
 	//register event triggers
 	$(".lefttrigger").click(function(){
 		$(".leftslidingmenu").slideToggleWidth();
@@ -101,7 +86,7 @@ $(document).ready(function() {
 		}
 		return false;
 	});
-	$(".righttrigger").click(function(){
+	/*$(".righttrigger").click(function(){
 		$(".rightslidingmenu").slideToggleWidth();
 		$(this).toggleClass("active");
 		if($(this).hasClass("active")) {
@@ -110,7 +95,7 @@ $(document).ready(function() {
 			container.width(container.width()-panel_width);
 		}
 		return false;
-	});
+	});*/
 	
 							
 	/*scheduler.config.xml_date = "%Y-%m-%d %H:%i";
@@ -122,6 +107,11 @@ $(document).ready(function() {
 	
 	var dp = new dataProcessor("/schedulers");
 	dp.init(scheduler);*/
+	$(window).bind('beforeunload',function(){
+		$('#event_status').load('/desync', function() {
+			$('#editingevent :input').prop('disabled', false);
+		});
+	});
 });
 
 jQuery.fn.extend({

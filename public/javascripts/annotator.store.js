@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-07-25 19:12:56Z
+** Built at: 2013-09-26 20:21:54Z
 */
 
 
@@ -75,14 +75,12 @@
       var _this = this;
       if (__indexOf.call(this.annotations, annotation) < 0) {
         this.registerAnnotation(annotation);
+        annotation.ca_case_id = window.top.ca_case_id;
         return this._apiRequest('create', annotation, function(data) {
           if (!(data.id != null)) {
             console.warn(Annotator._t("Warning: No ID returned from server for annotation "), annotation);
           }
-          _this.updateAnnotation(annotation, data);
-          if (annotation.start) {
-            return _this.createEvent;
-          }
+          return _this.updateAnnotation(annotation, data);
         });
       } else {
         return this.updateAnnotation(annotation, {});
@@ -101,7 +99,18 @@
     Store.prototype.annotationDeleted = function(annotation) {
       var _this = this;
       if (__indexOf.call(this.annotations, annotation) >= 0) {
-        return this._apiRequest('destroy', annotation, (function() {
+        return this._apiRequest('destroy', annotation, (function(data) {
+          var msg, _i, _len, _ref;
+          data.room = window.top.caseName;
+          window.top.socket.emit('DBAnnotationDeleted', data);
+          _ref = data.msg;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            msg = _ref[_i];
+            window.top.socket.emit(msg.operation + msg.resource, {
+              room: data.room,
+              id: msg.id
+            });
+          }
           return _this.unregisterAnnotation(annotation);
         }));
       }
@@ -116,12 +125,23 @@
     };
 
     Store.prototype.updateAnnotation = function(annotation, data) {
+      var msg, _i, _len, _ref;
       if (__indexOf.call(this.annotations, annotation) < 0) {
         console.error(Annotator._t("Trying to update unregistered annotation!"));
       } else {
         data.room = window.top.caseName;
-        $.extend(annotation, data);
+        $.extend(annotation, {
+          id: data.id
+        });
         window.top.socket.emit('DBAnnotationUpdated', data);
+        _ref = data.msg;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          msg = _ref[_i];
+          window.top.socket.emit(msg.operation + msg.resource, {
+            room: data.room,
+            id: msg.id
+          });
+        }
       }
       return $(annotation.highlights).data('annotation', annotation);
     };

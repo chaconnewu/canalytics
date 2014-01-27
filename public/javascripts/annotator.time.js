@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-07-29 15:45:33Z
+** Built at: 2013-08-05 19:52:25Z
 */
 
 
@@ -170,7 +170,7 @@
       if ((new Date(annotation.start)).getTime() > (new Date(annotation.end)).getTime()) {
         annotation.end = annotation.start;
       }
-      if ((annotation.start === '') || (annotation.end === '')) {
+      if (!(annotation.start && annotation.end)) {
         annotation.start = null;
         return annotation.end = null;
       }
@@ -195,7 +195,7 @@
       if ((new Date(annotation.end_after)).getTime() < (new Date(annotation.start)).getTime()) {
         annotation.end_after = annotation.end;
       }
-      if ((annotation.rrepeat === '') || (annotation.rinterval === '') || (annotation.end_after === '')) {
+      if (!(annotation.rrepeat && annotation.rinterval && annotation.end_after) || parseInt(annotation.rrepeat) < 1) {
         annotation.rrepeat = null;
         annotation.rinterval = null;
         return annotation.end_after = null;

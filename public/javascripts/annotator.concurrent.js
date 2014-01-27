@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-07-17 15:21:14Z
+** Built at: 2013-08-02 19:41:00Z
 */
 
 
@@ -27,19 +27,7 @@
       'annotationEditorHidden': 'annotationEditorHidden'
     };
 
-    Concurrent.prototype.options = {
-      _generateUUID: function() {
-        var d, uuid;
-        d = new Date().getTime();
-        return uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          var f, r;
-          r = (d + Math.random() * 16) % 16 | 0;
-          d = Math.floor(d / 16);
-          f = c === 'x' ? r : r & 0x7 | 0x8;
-          return f.toString(16);
-        });
-      }
-    };
+    Concurrent.prototype.options = null;
 
     Concurrent.prototype.pluginInit = function() {
       if (!Annotator.supported()) {
@@ -49,7 +37,7 @@
 
     Concurrent.prototype.annotationEditorShown = function(editor, annotation) {
       return $('.annotator-status').load('/sync', {
-        id: annotation.id
+        id: 'annotation_' + annotation.id
       }, function(data) {
         if (data.indexOf('please wait') !== -1) {
           $('.annotator-widget :input').prop('disabled', true);
@@ -63,10 +51,6 @@
         $('.annotator-widget :input').prop('disabled', false);
         return $('.annotator-save').removeClass('dom-disabled');
       });
-    };
-
-    Concurrent.prototype._generateUUID = function() {
-      return this.options._generateUUID();
     };
 
     return Concurrent;

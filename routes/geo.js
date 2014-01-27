@@ -9,7 +9,7 @@ exports.readall = function(req, res) {
 			if(err){
 				conn.end();
 			}else{
-				var query = conn.query('SELECT * FROM ca_locations WHERE ca_maps_id = "' + req.params.id + '"', 
+				var query = conn.query('SELECT * FROM ca_location WHERE ca_case_id = ' + req.params.id, 
 				function(err, result){
 					if(err) throw err;
 					conn.end();
@@ -20,6 +20,24 @@ exports.readall = function(req, res) {
 	}
 };
 
+exports.readLatLng = function(req, res) {
+	if(typeof req.session.username === "undefined") {
+		res.redirect('/');
+	} else {
+		pool.getConnection(function(err, conn){
+			if(err){
+				conn.end();
+			} else {
+				conn.query('SELECT lat, lng FROM ca_location WHERE location = "' + req.params.id + '"', function(err, results){
+					if(err) throw err;
+					conn.end();
+					res.send(results);
+				})
+			}
+		})
+	}
+};
+
 exports.readfacts = function(req, res) {
 	if(typeof req.session.username === "undefined") {
 		res.redirect('/');
@@ -27,21 +45,28 @@ exports.readfacts = function(req, res) {
 		async.series({
 			eve_loc: function(callback){
 				pool.getConnection(function(err, conn){
-					conn.query('SELECT GROUP_CONCAT(ca_people.name) AS people, ca_relationships.relationship AS relationship, ca_events.id AS eid, ca_events.rindex AS idx, ca_events.title AS title, ca_events.start AS start, ca_events.end AS end FROM ca_calendars JOIN ca_events ON ca_events.ca_calendars_id = ca_calendars.id LEFT JOIN ca_relationships ON ca_events.ca_relationships_id = ca_relationships.id LEFT JOIN ca_people ON ca_relationships.id = ca_people.ca_relationships_id WHERE ca_calendars.ca_cases_id = ' + req.query.cid + ' AND ca_events.location = "' + req.params.id + '" GROUP BY ca_events.id, ca_events.rindex', function(err, results){
+					conn.query('SELECT GROUP_CONCAT(ca_person.name) AS people, ca_relation.relation AS relation, ca_event.id AS eid, ca_event.rindex AS idx, ca_event.title AS title, ca_event.start AS start, ca_event.end AS end FROM ca_event LEFT JOIN ca_relation ON ca_event.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_event.ca_case_id = ' + req.query.ca_case_id + ' AND ca_event.ca_location_location = "' + req.params.id + '" GROUP BY ca_event.id, ca_event.rindex', function(err, results){
 						if(err) throw err;
-						
 						conn.end();
+						console.log(results);
 						callback(null, results);
 					})
 				})
 			},
 			ann_loc: function(callback){
-				callback(null, null);
+				pool.getConnection(function(err, conn){
+					conn.query('SELECT GROUP_CONCAT(ca_person.name) AS people, ca_relation.relation AS relation, ca_annotation.id AS aid, ca_annotation.text AS text FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_annotation.ca_case_id = ' + req.query.ca_case_id + ' AND ca_annotation.ca_location_location = "' + req.params.id + '" GROUP BY ca_annotation.id', function(err, results){
+						if(err) throw err;
+						console.log(results);
+						conn.end();
+						callback(null, results);
+					})
+				})
 			}
 		}, function(err, results){
 			if(err) throw err;
-			
-			res.send(results.eve_loc);
+			console.log(results);
+			res.send(results);
 		})
 	}
 };
@@ -54,11 +79,11 @@ exports.create = function(req, res) {
 			if(err){
 				conn.end();
 			} else {
-				conn.query('INSERT INTO ca_locations SET ?', {
+				conn.query('INSERT INTO ca_location SET ?', {
 					location: req.body.location,
-					ca_maps_id: req.body.mid,
 					lat: req.body.lat,
-					lng: req.body.lng
+					lng: req.body.lng,
+					ca_case_id: req.params.id
 				}, function(err, result) {
 					if(err) throw err;
 					

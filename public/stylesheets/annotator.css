@@ -31,7 +31,7 @@
 
 .annotator-resize,
 .annotator-widget::after,
-.annotator-editor a:not(.search-choice-close):not(.chzn-single)::after,
+.annotator-editor a::after,
 .annotator-viewer .annotator-controls button,
 .annotator-viewer .annotator-controls a,
 .annotator-filter .annotator-filter-navigation button::after,
@@ -435,7 +435,7 @@
 	border-radius: 5px 5px 0 0;
 }
 
-.annotator-editor a:not(.search-choice-close):not(.chzn-single),
+.annotator-editor a:not(.search-choice-close),
 .annotator-filter .annotator-filter-property label {
 	position: relative;
 	display: inline-block;
@@ -494,7 +494,7 @@
 	border-radius: 5px;
 }
 
-.annotator-editor a:not(.search-choice-close):not(.chzn-single)::after {
+.annotator-editor a:not(.search-choice-close)::after {
 	position: absolute;
 	top: 50%;
 	left: 5px;
@@ -552,7 +552,7 @@
 	background-position: 0 -105px;
 }
 
-.annotator-editor a:not(.search-choice-close):not(.chzn-single):active,
+.annotator-editor a:not(.search-choice-close):active,
 .annotator-filter .annotator-filter-navigation button:active {
 	border-color: rgb(112, 12, 73);
 	background-color: rgb(209, 46, 142);
@@ -954,8 +954,4 @@ span.name {
 	font-style: italic;
 	font-size: 12px;
 	color: #336699;
-}
-
-.chzn-choices input  {
-	width: 100% !important;
 }

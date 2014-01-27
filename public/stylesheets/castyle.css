@@ -1,3 +1,7 @@
+input[type="checkbox"] {
+	float: left;
+}
+
 .transparent {
 	display: none;
 }
@@ -215,6 +219,7 @@ a.active.closetrigger {
 	position: relative;
 	padding: 0px 10px 0px 10px;
 	margin: 0;
+	float: left;
 }
 
 /***** Accordion Menu Style *****/
@@ -245,11 +250,6 @@ ul#accordion li { float: left; width: 298px; }
 ul#accordion a.heading { width: 40%; }  
 ul#accordion ul li { float: none; width: auto; }
 ul#accordion li.ui-accordion-selected a.heading { background: #025185; color: #fff; } 
-
-/****chosen style*****/
-.chzn-select {
-	width: 300px;
-}
 
 /****balloon style****/
 .balloontip {
@@ -312,4 +312,45 @@ label {
 	overflow: auto;
 	margin: 0;
 	padding: 0;
+}
+
+.eventeditor-hidden {
+	display: none;
+}
+
+.eventeditor {
+	background: #BBB;
+	opacity: 0.95;
+	margin: 0;
+	padding: 5px;
+	-webkit-box-shadow: 1px 2px 5px rgba(50, 50, 50, 0.9);
+	-moz-box-shadow:    1px 2px 5px rgba(50, 50, 50, 0.9);
+	box-shadow:         1px 2px 5px rgba(50, 50, 50, 0.9);
+	-webkit-border-radius: 6px;
+	border-radius: 6px;
+	width: 280px;
+	height: auto;
+	overflow: hidden;
+}
+
+#activitylog {
+
+}
+
+.logtime {
+	font-size: 6pt;
+}
+
+.logtext {
+	font-size: 9pt;
+}
+
+.filterbar{
+	width: 280px;
+	background: #EEE;
+	float: left;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 0px;
+	border: 1px solid black;
 }

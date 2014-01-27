@@ -7,6 +7,7 @@ block append head
 	script(src="/javascripts/jquery-ui.min.js")
 	script(src="/javascripts/mycases.js")
 	script(src="/javascripts/windows.js")
+	title= title
 
 block content
 	#container.centerpanel
@@ -21,7 +22,7 @@ block content
 						ul#mycases
 							- each cacase in caselist
 								li
-									a(href="/mycase/?cid=#{cacase.id}&ct=#{cacase.title}") #{cacase.title}
+									a(href="/mycase/?ca_case_id=#{cacase.id}&ca_case_title=#{cacase.title}") #{cacase.title}
 		a.lefttrigger(href="#")
 	div.right.sidepanel
 		div.rightslidingmenu

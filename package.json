@@ -9,6 +9,8 @@
     "express": "3.0.0rc4",
     "jade": "*",
 		"mysql": "v2.0.0-alpha8",
+		"connect": "*",
+		"cookie": "*",
 		"socket.io": "*",
 		"async": "*"
   }

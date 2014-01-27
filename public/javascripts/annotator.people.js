@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-07-26 17:12:48Z
+** Built at: 2014-01-24 16:06:46Z
 */
 
 
@@ -84,46 +84,50 @@
       return this.options.stringifyPeople(array);
     };
 
-    People.prototype.loadGraph = function(editor, annotation) {
-      annotation.oldpeople = annotation.people ? annotation.people : [];
-      return annotation.oldrelationship = annotation.relationship ? annotation.relationship : [];
-    };
-
-    People.prototype.updateGraph = function(editor, annotation) {};
-
     People.prototype.updateField1 = function(field, annotation) {
       var people_list;
       people_list = [];
       if (annotation.people != null) {
         people_list = annotation.people;
       }
-      $(field).find('select option').each(function() {
+      return $(field).find('select option').each(function() {
+        $(this).prop('selected', false);
         if (people_list.indexOf($(this).val()) > -1) {
-          return $(this).attr('selected', 'selected');
+          return $(this).prop('selected', true);
         }
       });
-      return $('.field-people').trigger('liszt:updated');
     };
 
     People.prototype.updateField2 = function(field, annotation) {
-      $(field).find('select option').each(function() {
+      return $(field).find('select option').each(function() {
+        $(this).prop('selected', false);
         if ($(this).val() === annotation.relation) {
           return $(this).attr('selected', 'selected');
         }
       });
-      return $('.field-relation').trigger('liszt:updated');
     };
 
     People.prototype.setAnnotationPeople = function(field, annotation) {
-      if ((this.input1.val() != null) && this.input1.val() !== '') {
+      if (this.input1.val() && this.input1.val().length > 0) {
         return annotation.people = this.input1.val();
       }
     };
 
     People.prototype.setAnnotationRelation = function(field, annotation) {
-      if ((this.input2.val() != null) && this.input2.val() !== '') {
-        annotation.relation = this.input2.val();
-        return annotation.gid = window.top.gid;
+      if (annotation.people) {
+        if (annotation.people.length === 1) {
+          if (this.input2.val()) {
+            return annotation.relation = this.input2.val();
+          } else {
+            return annotation.relation = 'self';
+          }
+        } else {
+          if (this.input2.val()) {
+            return annotation.relation = this.input2.val();
+          } else {
+            return annotation.relation = 'related';
+          }
+        }
       }
     };
 

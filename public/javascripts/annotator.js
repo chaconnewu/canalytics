@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-07-25 19:38:09Z
+** Built at: 2014-01-24 16:34:04Z
 */
 
 
@@ -842,7 +842,7 @@
       }
       annotation.quote = annotation.quote.join(' / ');
       $(annotation.highlights).data('annotation', annotation);
-      annotation.docid = $('head meta[name="ID"]').attr('content');
+      annotation.ca_doc_uuid = $('head meta[name="ID"]').attr('content');
       if (fireEvents) {
         this.publish('annotationCreated', [annotation]);
       }
@@ -1295,7 +1295,7 @@
     };
 
     Editor.prototype.addField = function(options) {
-      var element, field, input, location, person, relation, superthis, _k, _l, _len2, _len3, _len4, _m, _ref2, _ref3, _ref4;
+      var element, field, input, superthis;
       superthis = this;
       field = $.extend({
         id: 'annotator-field-' + util.uuid(),
@@ -1319,16 +1319,16 @@
           input = $('<input type="datetime-local" />');
           break;
         case 'select-interval':
-          input = $('<select class="field-interval" data-placeholder="Interval..." tabindex="3"><option value=""></option><option value="day(s)">day(s)</option><option value="week(s)">week(s)</option><option value="month(s)">month(s)</option></select>');
+          input = $('<select class="field-interval"><option value=""></option><option value="day(s)">day(s)</option><option value="week(s)">week(s)</option><option value="month(s)">month(s)</option></select>');
           break;
         case 'select-location':
-          input = $('<select class="field-location" data-placeholder="Location..." tabindex="4"/>');
+          input = $('<select class="field-location"/>');
           break;
         case 'select-people':
-          input = $('<select class="field-people" multiple data-placeholder="People..." tabindex="1"/>');
+          input = $('<select class="field-people" multiple/>');
           break;
         case 'select-relation':
-          input = $('<select class="field-relation" data-placeholder="Relation..." tabindex="4"/>');
+          input = $('<select class="field-relation"/>');
       }
       element.append(input);
       input.attr({
@@ -1341,69 +1341,53 @@
           element.prepend($('<span>' + field.label + '</span>'));
           break;
         case 'select-interval':
-          $('.field-interval').chosen();
+          $('.field-interval').selectize();
           break;
         case 'select-location':
-          $('.field-location').append('<option value=""></option>');
-          _ref2 = window.top.calocation.location_list;
-          for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-            location = _ref2[_k];
-            $('.field-location').append('<option value="' + location + '">' + location + '</option>');
-          }
-          $('.field-location').chosen({
-            create_option: function(term) {
+          $('.field-location').selectize({
+            hideSelected: true,
+            maxOptions: 4,
+            create: function(input) {
               var that;
               that = this;
-              return field.search(term, superthis.element, function(loc_selected) {
+              return field.search(input, superthis.element, function(loc_selected) {
                 if (loc_selected) {
                   window.top.calocation.location_list.push(loc_selected);
-                  return that.append_option({
-                    value: loc_selected,
-                    text: loc_selected
-                  });
+                  return {
+                    value: input,
+                    text: input
+                  };
+                } else {
+                  return null;
                 }
               });
-            },
-            persistent_create_option: true,
-            allow_single_deselect: true
+            }
           });
           break;
         case 'select-people':
-          $('.field-people').append('<option value=""></option>');
-          _ref3 = window.top.capeople.people_list;
-          for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-            person = _ref3[_l];
-            $('.field-people').append('<option value="' + person + '">' + person + '</option>');
-          }
-          $('.field-people').chosen({
-            create_option: function(term) {
-              window.top.capeople.people_list.push(term);
-              return this.append_option({
-                value: term,
-                text: term
-              });
-            },
-            persistent_create_option: true,
-            allow_single_deselect: true
+          this.annotator.fieldpeople = $('.field-people').selectize({
+            hideSelected: true,
+            maxOptions: 4,
+            create: function(input) {
+              window.top.capeople.people_list.push(input);
+              return {
+                value: input,
+                text: input
+              };
+            }
           });
           break;
         case 'select-relation':
-          $('.field-relation').append('<option value=""></option>');
-          _ref4 = window.top.capeople.relation_list;
-          for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
-            relation = _ref4[_m];
-            $('.field-relation').append('<option value="' + relation + '">' + relation + '</option>');
-          }
-          $('.field-relation').chosen({
-            create_option: function(term) {
-              window.top.capeople.people_list.push(term);
-              return this.append_option({
-                value: term,
-                text: term
-              });
-            },
-            persistent_create_option: true,
-            allow_single_deselect: true
+          $('.field-relation').selectize({
+            hideSelected: true,
+            maxOptions: 4,
+            create: function(input) {
+              window.top.capeople.relation_list.push(input);
+              return {
+                value: input,
+                text: input
+              };
+            }
           });
       }
       this.fields.push(field);
@@ -1413,7 +1397,7 @@
     Editor.prototype.checkOrientation = function() {
       var controls, list;
       Editor.__super__.checkOrientation.apply(this, arguments);
-      list = this.element.find('ul').not(".chzn-choices, .chzn-results");
+      list = this.element.find('ul');
       controls = this.element.find('.annotator-controls');
       if (this.element.hasClass(this.classes.invert.y)) {
         controls.insertBefore(list);

@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-07-24 19:10:55Z
+** Built at: 2013-10-04 19:00:16Z
 */
 
 
@@ -104,6 +104,11 @@
             }
             $(el).append("<div id='location_alert'><form id='locform' name='locform'><b>Which location do you mean?</b><br>" + radio_btns + "</form></div>");
             return $("#location_alert").dialog({
+              position: {
+                my: 'center',
+                at: 'center',
+                of: el
+              },
               width: 'auto',
               modal: true,
               buttons: {
@@ -115,15 +120,11 @@
                   var loc_selected, params;
                   loc_selected = $('input:radio[name=loc]:checked').val();
                   $(this).dialog("close");
-                  if (typeof camap !== "undefined" && camap !== null) {
-                    new google.maps.Marker({
-                      map: camap.map,
-                      position: addrs[loc_selected],
-                      title: loc_selected
-                    });
+                  if (window.top.camap) {
+                    window.top.camap.placeMarker(addrs[loc_selected], loc_selected);
                   }
-                  params = "location=" + encodeURIComponent(loc_selected) + "&lat=" + addrs[loc_selected].lat() + "&lng=" + addrs[loc_selected].lng() + "&mid=" + window.top.mid;
-                  return that.ajax_request('/maps/location', 'POST', params, callback(loc_selected));
+                  params = "location=" + encodeURIComponent(loc_selected) + "&lat=" + addrs[loc_selected].lat() + "&lng=" + addrs[loc_selected].lng();
+                  return that.ajax_request('/maps/' + window.top.ca_case_id, 'POST', params, callback(loc_selected));
                 }
               },
               close: function(ev, ui) {
@@ -133,7 +134,25 @@
             });
           } else {
             $(el).append("<div id='location_alert'>We could not find the location <b>" + loc + "</b>. Make sure all street and city names are spelled correctly.</div>");
-            return callback(null);
+            return $("#location_alert").dialog({
+              position: {
+                my: 'center',
+                at: 'center',
+                of: el
+              },
+              width: 'auto',
+              modal: true,
+              buttons: {
+                'OK': function() {
+                  $(this).dialog("close");
+                  return callback(null);
+                }
+              },
+              close: function(ev, ui) {
+                $(this).dialog("destroy");
+                return $(this).remove();
+              }
+            });
           }
         });
       }
@@ -141,7 +160,8 @@
 
     Location.prototype.updateField = function(field, annotation) {
       $(field).find('select option').each(function() {
-        if ($(this).val() === annotation.location) {
+        $(this).prop('selected', false);
+        if ($(this).val() === annotation.ca_location_location) {
           return $(this).attr('selected', 'selected');
         }
       });
@@ -149,15 +169,15 @@
     };
 
     Location.prototype.setAnnotationLocation = function(field, annotation) {
-      if ((this.input.val() != null) && this.input.val() !== '') {
-        return annotation.location = this.input.val();
+      if (this.input.val()) {
+        return annotation.ca_location_location = this.input.val();
       }
     };
 
     Location.prototype.updateViewer = function(field, annotation) {
       field = $(field);
-      if (annotation.location && annotation.location !== "") {
-        return field.addClass('annotator-location').html('<span class="annotator-location">' + Annotator.$.escape(annotation.location) + '</a></span>');
+      if (annotation.ca_location_location && annotation.ca_location_location !== "") {
+        return field.addClass('annotator-location').html('<span class="annotator-location">' + Annotator.$.escape(annotation.ca_location_location) + '</a></span>');
       } else {
         return field.remove();
       }

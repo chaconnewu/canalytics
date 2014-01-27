@@ -20,7 +20,7 @@ function caGraph(el, data) {
 																.attr('class', 'tooltip')
 																.style('opacity', 0);
 																
-		if(data.length > 0) this.load(data);
+		if(data.relationlist.length > 0) this.load(data);
     // Make it all go
     this.update();
 }
@@ -28,7 +28,7 @@ function caGraph(el, data) {
 // Add and remove elements on the graph object
 caGraph.prototype.addNode = function (id) {
 	if(this.findNodeIndex(id) >-1) return true;
-    this.nodes.push({"id":id});
+  this.nodes.push({"id":id});
   this.update();
 };
 
@@ -43,30 +43,34 @@ caGraph.prototype.removeNode = function (id) {
   this.update();
 };
 
-caGraph.prototype.addLink = function (source, target, typeid, type) {
+caGraph.prototype.addLink = function (source, target, typeid, type, facts) {
 	var np = source + "_" + target;
 	if(this.nodePair[np]) {
-		this.nodePair[np]['num']++;
-		this.nodePair[np]['relations'].push(typeid);
+		this.nodePair[np][typeid] = {
+			type: type,
+			facts: facts
+		};
 	} else {
 		this.nodePair[np] = {};
-		this.nodePair[np]['num'] = 1;
-		this.nodePair[np]['relations'] = [];
-		this.nodePair[np]['relations'].push(typeid);
+		this.nodePair[np][typeid] = {
+			type: type,
+			facts: facts
+		};
 		this.links.push({"source":this.findNode(source),"target":this.findNode(target)});
 	}
 	this.update();
 };
 
-caGraph.prototype.removeLink = function (source, target, typeid, type) {
-	var np = this.nodePair[source+'_'+target];
-	this.nodePair[source+'_'+target].num--;
-	np.relations.splice(np.relations.indexOf(typeid), 1);
+caGraph.prototype.removeLink = function (source, target, typeid) {
+	var np = source+'_'+target;
+	console.log('deleting '+np+typeid);
+	delete this.nodePair[np][typeid];
 
-	if(this.nodePair[source+'_'+target].num <= 0) {
-		delete this.nodePair[source+'_'+target];
+	if(Object.keys(this.nodePair[np]).length <= 0) {
+		delete this.nodePair[np];
 		this.links.splice(this.findLinkIndex(source, target),1);
 	}
+
 	this.update();
 }
 
@@ -108,7 +112,7 @@ caGraph.prototype.update = function () {
 							.on('mouseover', function(d){
 								d3.select(this).transition()
 															 .style('stroke', '#00B9D2');
-								_this.div.html(JSON.stringify(_this.nodePair[d.source.id+'_'+d.target.id].relations))
+								_this.div.html(JSON.stringify(_this.nodePair[d.source.id+'_'+d.target.id]))
 												  .style('left', (d3.event.pageX) + 'px')
 													.style('top', (d3.event.pageY-_this.div[0][0].offsetHeight) + 'px');
 
@@ -152,7 +156,7 @@ caGraph.prototype.update = function () {
 				.attr('x2', function(d){ return d.target.x; })
 				.attr('y2', function(d){ return d.target.y; })
 				.attr('style', function(d){ 
-					var width = _this.nodePair[d.source.id+'_'+d.target.id].num+1;
+					var width = Object.keys(_this.nodePair[d.source.id+'_'+d.target.id]).length+1;
 					return 'stroke-width:'+width; });
 		
 		node.attr('transform', function(d){ return 'translate(' + d.x + ',' + d.y + ')'; });
@@ -161,53 +165,77 @@ caGraph.prototype.update = function () {
   this.force.start();
 };
 
+caGraph.prototype.reload = function(data) {
+	this.nodePair = {};
+	
+  this.force = d3.layout.force()
+      .linkDistance(150)
+      .charge(-500)
+      .size([this.w, this.h]);
+
+	this.nodes = this.force.nodes(),
+	this.links = this.force.links();
+	
+	if(data.relationlist.length > 0) this.load(data);
+  // Make it all go
+  this.update();
+};
+
 caGraph.prototype.load = function(data) {
 	var _this = this;
 	var link = {};
-
-	for(var idx in data) {
-		var d = data[idx];
-		this.addNode(d.name);
-		var did = d.id;
-		if(!link[did]) {
-			link[did] = [];
-			link[did].push(d.relationship);
+	var relationlist = data.relationlist;
+	for(var idx in relationlist) {
+		var d = relationlist[idx];
+		var did = d.id || d.rid;
+		if(did){
+			this.addNode(d.name);
+			if(!link[did]) {
+				link[did] = [];
+				link[did].push(d.relation);
+				var facts = '';
+				if(d.text) facts += d.text + ' ';
+				if(d.ca_location_location) facts += 'location: ' + d.ca_location_location + ' ';
+				if(d.start) facts += 'start: ' + d.start + ' ';
+				if(d.end) facts += 'end: ' + d.end + ' ';
+				link[did].push(facts);
+			}
+			link[did].push(d.name);
 		}
-		link[did].push(d.name);
 	}
+
 	Object.keys(link).forEach(function(l){
 		var lk = link[l];
 		var r = lk.splice(0,1);
+		var f = lk.splice(0,1);
 		lk.sort();
 		for(var i=0; i<lk.length; i++){
 			for(var j=i+1; j<lk.length; j++){
-				_this.addLink(lk[i],lk[j],l,r);
+				_this.addLink(lk[i],lk[j],l,r, f);
 			}
 		}
 	})
 };
 
-caGraph.prototype.unload = function(data) {
+caGraph.prototype.unload = function(id) {
 	var _this = this;
-	var link = {};
-
-	for(var idx in data) {
-		var d = data[idx];
-		var did = d.id;
-		if(!link[did]) {
-			link[did] = [];
-			link[did].push(d.relationship);
-		}
-		link[did].push(d.name);
-	}
-	Object.keys(link).forEach(function(l){
-		var lk = link[l];
-		var r = lk.splice(0,1);
-		lk.sort();
-		for(var i=0; i<lk.length; i++){
-			for(var j=i+1; j<lk.length; j++){
-				_this.removeLink(lk[i],lk[j],l,r);
+	var rmlist = [];
+	
+	Object.keys(this.nodePair).forEach(function(np){
+		var n = _this.nodePair[np];
+		Object.keys(n).forEach(function(typeid){
+			if(typeid == id){
+				rmlist.push(np)
 			}
-		}
+		})
 	})
+	var source = "";
+	var target = "";
+	var source_target = [];
+	for(var i in rmlist) {
+		source_target = rmlist[i].split('_');
+		source = source_target[0];
+		target = source_target[1];
+		this.removeLink(source, target, id);
+	}
 };

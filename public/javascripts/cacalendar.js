@@ -3,23 +3,22 @@ function caCalendar(el, options) {
 	this.el.addClass('cacalendar');
 	this.dropdowncontrol = {};
 	this.options = $.extend(this.defaultoptions, {
-		dayClick: this.showNewEventEditor.bind(this),
+		dayClick: this.showEventEditor.bind(this),
 		eventClick: this.showEventEditor.bind(this),
 		eventMouseover: this.showEvent.bind(this),
 		eventMouseout: this.hideEvent
 		//select: this.showNewEventSelector.bind(this)
 	}, options);
-	this.newEventEditor = null;
-	this.editingEventEditor = null;
+	this.eventEditor = null;
+	this.calEvent = null;
 
-	this.setupNewEventEditor();
 	this.setupEventEditor();
 	this.setupDropDownList();
 
 	el.fullCalendar(this.options);
 };
 
-caCalendar.prototype.reload = function(data){
+caCalendar.prototype.reload = function(data) {
 	this.options.events = data;
 	this.el.fullCalendar(this.options);
 };
@@ -39,46 +38,24 @@ caCalendar.prototype.defaultoptions = {
 
 caCalendar.prototype.setupDropDownList = function() {
 	var _this = this;
-	
-	var l_options = []
-	var p_options = [];
-	var r_options = [];
 
-	for (var i in calocation.location_list) {
-		l_options.push({value: calocation.location_list[i], text: calocation.location_list[i]})
-	}
-
-	for (var i in capeople.people_list) {
-		p_options.push({value: capeople.people_list[i], text: capeople.people_list[i]})
-	}
-
-	for (var i in capeople.relation_list) {
-		r_options.push({value: capeople.relation_list[i], text: capeople.relation_list[i]})
-	}
-	
-	this.dropdowncontrol.selectlocation1 = $("#selectlocation1").selectize({
+	this.dropdowncontrol.selectlocation = $("#selectlocation").selectize({
 		hideSelected: true,
-		options: l_options,
+		options: calocation.location_options,
 		create: function(input) {
-			_this.searchLocations(input, 'neweventeditor', function(loc_selected) {
+			_this.searchLocations(input, 'eventeditor', function(loc_selected) {
 				if (loc_selected) {
 					calocation.location_list.push(loc_selected);
-					return {
-						value: input,
-						text: input
+					calocation.location_options.push({
+						value: loc_selected,
+						text: loc_selected
+					});
+					for (var i in window.dropdownlists.locationlists) {
+						window.dropdownlists.locationlists[i][0].selectize.addOption({
+							value: input,
+							text: input
+						});
 					}
-				}
-				
-				return null;
-			})
-		}});
-	this.dropdowncontrol.selectlocation2 = $("#selectlocation2").selectize({
-		hideSelected: true,
-		options: l_options,
-		create: function(input) {
-			_this.searchLocations(input, 'neweventeditor', function(loc_selected) {
-				if (loc_selected) {
-					calocation.location_list.push(loc_selected);
 					return {
 						value: input,
 						text: input
@@ -86,288 +63,168 @@ caCalendar.prototype.setupDropDownList = function() {
 				}
 				return null;
 			})
-		}});
-	this.dropdowncontrol.selectpeople1 = $("#selectpeople1").selectize({
+		}
+	});
+	window.dropdownlists.locationlists.push(this.dropdowncontrol.selectlocation);
+
+	this.dropdowncontrol.selectpeople = $("#selectpeople").selectize({
 		hideSelected: true,
-		options: p_options,
+		options: capeople.people_options,
 		create: function(input) {
 			capeople.people_list.push(input);
+			capeople.people_options.push({
+				value: input,
+				text: input
+			});
+			for (var i in window.dropdownlists.peoplelists) {
+				window.dropdownlists.peoplelists[i][0].selectize.addOption({
+					value: input,
+					text: input
+				});
+			}
 			return {
 				value: input,
 				text: input
 			}
 		}
 	});
-	this.dropdowncontrol.selectpeople2 = $("#selectpeople2").selectize({
+	window.dropdownlists.peoplelists.push(this.dropdowncontrol.selectpeople);
+
+	this.dropdowncontrol.selectrelation = $("#selectrelation").selectize({
 		hideSelected: true,
-		options: p_options,
-		create: function(input) {
-			capeople.people_list.push(input);
-			return {
-				value: input,
-				text: input
-			}
-		}
-	});
-	this.dropdowncontrol.selectrelation1 = $("#selectrelation1").selectize({
-		hideSelected: true,
-		options: r_options,
-		create: function(input) {
-			capeople.relation_list.push(input);
-			return {
-				value: input,
-				text: input
-			}
-		}
-	});
-	this.dropdowncontrol.selectrelation2 = $("#selectrelation2").selectize({
-		hideSelected: true,
-		options: r_options,
+		options: capeople.relation_options,
 		create: function(input) {
 			capeople.relation_list.push(input);
+			capeople.relation_options.push({
+				value: input,
+				text: input
+			});
+			for (var i in window.dropdownlists.relationlists) {
+				window.dropdownlists.relationlists[i][0].selectize.addOption({
+					value: input,
+					text: input
+				});
+			}
 			return {
 				value: input,
 				text: input
 			}
 		}
 	});
-	this.dropdowncontrol.selectinterval1 = $("#selectinterval1").selectize();
-	this.dropdowncontrol.selectinterval2 = $("#selectinterval2").selectize();
-};
+	window.dropdownlists.relationlists.push(this.dropdowncontrol.selectrelation);
 
-caCalendar.prototype.setupNewEventEditor = function() {
-	var _this = this;
-	var win = this.el;
-	
-	var d = new Date();
-	
-	var html = "<form id='newevent' name='newevent'><input type='hidden' name='ca_case_id' value='" + window.ca_case_id + "'><input type='hidden' name='rindex' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><select id='selectlocation1' placeholder='Location' name='location' tabindex='6'></select><br><select id='selectpeople1' multiple placeholder='People' name='people' tabindex='6'></select><br><select id='selectrelation1' placeholder='Relation' name='relation' tabindex='6'></select><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select id='selectinterval1' name='rinterval'><option value=''></option><option value='day(s)'>Day(s)</option><option value='week(s)'>Week(s)</option><option value='month(s)'>Month(s)</option></select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after'><br><input id='calpost' class='form_btn' type='button' value='Done'><input class='form_btn calcncl' type='button' value='Cancel'></form>";
-
-	var div = $('<div id="neweventeditor" class="eventeditor"></div>').appendTo($('body'));
-	div.addClass('eventeditor-hidden');
-
-	var neweventform = $(html).appendTo(div);
-	neweventform.prepend("<div id='err1'></div>")
-	$("#calpost").click(function() {
-		var err = _this.validateForm1('newevent');
-		if (err) {
-			$("#err1").html(err);
-		} else {
-			var params = $("#newevent").serialize();
-			div.addClass('eventeditor-hidden');
-			neweventform[0].reset();
-			win.removeClass('editing');
-			ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
-		}
-	});
-	$(".calcncl").click(function() {
-		div.addClass('eventeditor-hidden');
-		neweventform[0].reset();
-		win.removeClass('editing');
-	});
-
-	win.click(function(e){
-		e.stopPropagation();
-	});
-	div.click(function(e){
-		e.stopPropagation();
-	});
-	$(document).click(function(){
-		div.addClass('eventeditor-hidden');
-		neweventform[0].reset();
-		win.removeClass('editing');
-	})
-	this.newEventEditor = div;
+	this.dropdowncontrol.selectinterval = $("#selectinterval").selectize();
 };
 
 caCalendar.prototype.setupEventEditor = function() {
 	var _this = this;
 	var win = this.el;
-	
-	var html = "<form id='editingevent' name='editingevent'><input type='hidden' name='ca_case_id' value='" + window.ca_case_id + "'><input type='hidden' name='rindex' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><select id='selectlocation2' placeholder='Location' name='location' tabindex='6'></select><br><select id='selectpeople2' multiple placeholder='People' name='people' tabindex='6'></select><br><select id='selectrelation2' placeholder='Relation' name='relation' tabindex='6'></select><br><label for='start'>From:</label><input type='datetime-local' name='start'><br><label for='end'>To:</label><input type='datetime-local' name='end'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select id='selectinterval2' name='rinterval'><option value=''></option><option value='day(s)'>Day(s)</option><option value='week(s)'>Week(s)</option><option value='month(s)'>Month(s)</option></select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after'><br><input id='calput' class='form_btn' type='button' value='Done'><input class='form_btn calcncl' type='button' value='Cancel'><input id='caldel' class='form_btn' type='button' value='Delete'><br><div id='event_status'><div></form>";
 
-	var div = $('<div id="editingeventeditor" class="eventeditor"></div>').appendTo($('body'));
+	var d = new Date();
+
+	var html = "<form id='eventform' name='eventform'><input type='hidden' name='ca_case_id' value='" + window.ca_case_id + "'><input type='hidden' name='rindex' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><select id='selectlocation' placeholder='Location' name='location' tabindex='6'></select><br><select id='selectpeople' multiple placeholder='People' name='people' tabindex='6'></select><br><select id='selectrelation' placeholder='Relation' name='relation' tabindex='6'></select><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select id='selectinterval' name='rinterval'><option value='day(s)'>Day(s)</option><option value='week(s)'>Week(s)</option><option value='month(s)'>Month(s)</option></select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after'><br><input id='calpost' class='form_btn' type='button' value='Done'><input id='calcncl' class='form_btn' type='button' value='Cancel'><input id='caldel' class='form_btn' type='button' value='Delete'><br><div id='event_status'></div></form>";
+
+	var div = $('<div id="eventeditor" class="eventeditor"></div>').appendTo($('body'));
 	div.addClass('eventeditor-hidden');
-	var editingeventform = $(html).appendTo(div);
-	editingeventform.prepend("<div id='err2'></div>");
-	
-	win.click(function(e){
-		e.stopPropagation();
-	});
-	div.click(function(e){
-		e.stopPropagation();
-	});
-	$(document).click(function(){
-		div.addClass('eventeditor-hidden');
-		editingeventform[0].reset();
-		win.removeClass('editing');
-		$('#event_status').load('/desync', function() {
-			$('#editingevent :input').prop('disabled', false);
-		});
-	})
-	
-	this.editingEventEditor = div;
-};
 
-caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view) {
-	var _this = this;
+	var eventform = $(html).appendTo(div);
+	eventform.prepend("<div id='errmsg'></div>");
 
-	var win = this.el;
-
-	if (calEvent.ca_annotation_id) return false;
-	if (win.hasClass('editing')) return false;
-	$('#event_status').load('/sync', {
-		id: 'event_' + calEvent.id
-	}, function(data) {
-		if (data.indexOf('please try again') !== -1) {
-			$('#editingevent :input').prop('disabled', true);
-
-			win.addClass('editing');
-
-			_this.hideEvent(calEvent, jsEvent, view);
-
-			_this.editingEventEditor.removeClass('eventeditor-hidden');
-			_this.editingEventEditor.offset({
-				top: jsEvent.pageY,
-				left: jsEvent.pageX
-			});
-			_this.editingEventEditor.css('z-index', 99999);
-
-			$(".calcncl").prop('disabled', false);
-			$(".calcncl").click(function() {
-				div.addClass('eventeditor-hidden');
-				editingeventform[0].reset();
-				win.removeClass('editing');
-				$('#event_status').load('/desync', function() {
-					$('#editingevent :input').prop('disabled', false);
-					return false;
-				});
-			});
-		}
-	});
-	win.addClass('editing');
-
-	this.hideEvent(calEvent, jsEvent, view);
-
-	var el = $(jsEvent.target).closest('.fc-event');
-
-	var div = $('#editingeventeditor');
-
-	var editingeventform = $('#editingevent');
-
-	var start = format_date(calEvent.start);
-
-	var end = format_date(calEvent.end);
-
-	var end_after = calEvent.end_after;
-
-	this.editingEventEditor.removeClass('eventeditor-hidden');
-	this.editingEventEditor.offset({
-		top: jsEvent.pageY,
-		left: jsEvent.pageX
-	});
-	this.editingEventEditor.css('z-index', 99999);
-
-	$('<input>').attr({
-		type: 'hidden',
-		name: 'id'
-	}).appendTo('#editingevent');
-
-	this.dropdowncontrol.selectpeople2[0].selectize.clear();
-	var people_list = [];
-	if (calEvent.people) people_list = calEvent.people.split(',');
-	for (var i in people_list){
-		this.dropdowncontrol.selectpeople2[0].selectize.addItem(people_list[i])	
-	}
-	
-	this.dropdowncontrol.selectrelation2[0].selectize.clear();
-	this.dropdowncontrol.selectrelation2[0].selectize.addItem(calEvent.relation);
-	
-	this.dropdowncontrol.selectlocation2[0].selectize.clear();
-	this.dropdowncontrol.selectlocation2[0].selectize.addItem(calEvent.ca_location_location);
-	
-	this.dropdowncontrol.selectinterval2[0].selectize.clear();
-	this.dropdowncontrol.selectinterval2[0].selectize.addItem(calEvent.rinterval);
-	
-	$('#editingevent textarea[name=title]').val(calEvent.title);
-	$('#editingevent input[name=rrepeat]').val(calEvent.rrepeat);
-	$('#editingevent input[name=start]').val(start);
-	$('#editingevent input[name=end]').val(end);
-	$('#editingevent input[name=end_after]').val(end_after);
-	$("#err2").html('');
-	
-	$("#calput").click(function() {
-		var err = _this.validateForm2('editingevent');
+	$("#calpost").click(function() {
+		var err = _this.validateForm("eventform");
 		if (err) {
-			$("#err2").html(err);
+			$("#errmsg").html(err);
 		} else {
-			var params = $("#editingevent").serialize();
-			if (calEvent.rrepeat) {
-				$("#editingeventeditor").append("<div id='repeating_alert'><b>You're changing a repeating event.</b><br>Do you want to change only this occurrence of the event, or this and all future occurrences?</div>");
+			var params = eventform.serialize();
+			if (_this.calEvent) {
+				//existing event
+				if (_this.calEvent.rrepeat) {
+					div.append("<div id='repeating_alert'><b>You're changing a repeating event.</b><br>Do you want to change only this occurrence of the event, or this and all future occurrences?</div>");
 
-				$("#repeating_alert").dialog({
-					width: 'auto',
-					modal: true,
-					buttons: {
-						'Cancel': function() {
-							$(this).dialog("close");
-							div.addClass('eventeditor-hidden');
-							editingeventform[0].reset();
-							win.removeClass('editing');
-							$('#event_status').load('/desync', function() {
-								$('#editingevent :input').prop('disabled', false);
-							});
-						},
-						'All Future Events': function() {
-							$(this).dialog("close");
-							params += "&idx=x" + calEvent.rindex;
-							div.addClass('eventeditor-hidden');
-							editingeventform[0].reset();
-							win.removeClass('editing');
-							ajax_request('/calendars/events/' + calEvent.id, 'PUT', params, function(data) {
+					$("#repeating_alert").dialog({
+						width: 'auto',
+						modal: true,
+						buttons: {
+							'Cancel': function() {
+								$(this).dialog("close");
+								div.addClass('eventeditor-hidden');
+								eventform[0].reset();
+								win.removeClass('editing');
+								_this.calEvent = null;
 								$('#event_status').load('/desync', function() {
-									$('#editingevent :input').prop('disabled', false);
-									_this.updateEvent(data);
+									$('#eventform :input').prop('disabled', false);
 								});
-							});
+							},
+							'All Future Events': function() {
+								$(this).dialog("close");
+								params += "&idx=x" + _this.calEvent.rindex;
+								div.addClass('eventeditor-hidden');
+								eventform[0].reset();
+								win.removeClass('editing');
+								ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
+									_this.calEvent = null;
+									$('#event_status').load('/desync', function() {
+										$('#eventform :input').prop('disabled', false);
+										_this.updateEvent(data);
+									});
+								});
+							},
+							'Only This Event': function() {
+								$(this).dialog("close");
+								params += "&idx=" + _this.calEvent.rindex;
+								div.addClass('eventeditor-hidden');
+								eventform[0].reset();
+								win.removeClass('editing');
+								ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
+									_this.calEvent = null;
+									$('#event_status').load('/desync', function() {
+										$('#editingevent :input').prop('disabled', false);
+										_this.updateEvent(data);
+									});
+								});
+							}
 						},
-						'Only This Event': function() {
-							$(this).dialog("close");
-							params += "&idx=" + calEvent.rindex;
-							div.addClass('eventeditor-hidden');
-							editingeventform[0].reset();
-							win.removeClass('editing');
-							ajax_request('/calendars/events/' + calEvent.id, 'PUT', params, function(data) {
-								var d = data;
-								$('#event_status').load('/desync', function() {
-									$('#editingevent :input').prop('disabled', false);
-									_this.updateEvent(data);
-								});
-							});
+						close: function(ev, ui) {
+							$(this).dialog("destroy").remove();
 						}
-					},
-					close: function(ev, ui) {
-						$(this).dialog("destroy");
-						$(this).remove();
-					}
-				})
-			} else {
-				div.addClass('eventeditor-hidden');
-				editingeventform[0].reset();
-				win.removeClass('editing');
-				ajax_request('/calendars/events/' + calEvent.id, 'PUT', params, function(data) {
-					$('#event_status').load('/desync', function() {
-						$('#editingevent :input').prop('disabled', false);
-						_this.updateEvent(data);
+					})
+				} else {
+					div.addClass('eventeditor-hidden');
+					editingeventform[0].reset();
+					win.removeClass('editing');
+					ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
+						_this.calEvent = null;
+						$('#event_status').load('/desync', function() {
+							$('#editingevent :input').prop('disabled', false);
+							_this.updateEvent(data);
+						});
 					});
-				});
-			}
+				}
+		} else {
+			//new event
+			div.addClass('eventeditor-hidden');
+			eventform[0].reset();
+			win.removeClass('editing');
+			ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
 		}
+	}
 	});
-
-	$("#caldel").click(function() {
-		if (calEvent.rrepeat) {
-			$("#editingeventeditor").append("<div id='repeating_alert'><b>You're deleting a repeating event.</b><br>Do you want to delete only the selected occurrence, or this and all future occurrences of this event?</div>");
+//
+$("#calcncl").click(function() {
+	div.addClass('eventeditor-hidden');
+	eventform[0].reset();
+	win.removeClass('editing');
+	_this.calEvent = null;
+	$('#event_status').load('/desync', function() {
+		$('#eventform :input').prop('disabled', false);
+	});
+});
+//
+$("#caldel").click(function() {
+	if (_this.calEvent) {
+		//existing event
+		if (_this.calEvent.rrepeat) {
+			div.append("<div id='repeating_alert'><b>You're deleting a repeating event.</b><br>Do you want to delete only the selected occurrence, or this and all future occurrences of this event?</div>");
 
 			$("#repeating_alert").dialog({
 				width: 'auto',
@@ -376,21 +233,23 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view) {
 					'Cancel': function() {
 						$(this).dialog("close");
 						div.addClass('eventeditor-hidden');
-						editingeventform[0].reset();
+						eventform[0].reset();
 						win.removeClass('editing');
+						_this.calEvent = null;
 						$('#event_status').load('/desync', function() {
-							$('#editingevent :input').prop('disabled', false);
+							$('#eventform :input').prop('disabled', false);
 						});
 					},
 					'Delete All Future Events': function() {
 						$(this).dialog("close");
 						div.addClass('eventeditor-hidden');
-						editingeventform[0].reset();
+						eventform[0].reset();
 						win.removeClass('editing');
-						var params = "idx=x" + calEvent.rindex + "&rindex=" + calEvent.rindex;
-						ajax_request('/calendars/events/' + calEvent.id, 'DELETE', params, function(data) {
+						var params = "idx=x" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
+						ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
+							_this.calEvent = null;
 							$('#event_status').load('/desync', function() {
-								$('#editingevent :input').prop('disabled', false);
+								$('#eventform :input').prop('disabled', false);
 								_this.updateEvent(data);
 							});
 						});
@@ -398,75 +257,179 @@ caCalendar.prototype.showEventEditor = function(calEvent, jsEvent, view) {
 					'Delete Only This Event': function() {
 						$(this).dialog("close");
 						div.addClass('eventeditor-hidden');
-						editingeventform[0].reset();
+						eventform[0].reset();
 						win.removeClass('editing');
-						var params = "idx=" + calEvent.rindex + "&rindex=" + calEvent.rindex;
-						ajax_request('/calendars/events/' + calEvent.id, 'DELETE', params, function(data) {
+						var params = "idx=" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
+						ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
+							_this.calEvent = null;
 							$('#event_status').load('/desync', function() {
-								$('#editingevent :input').prop('disabled', false);
+								$('#eventform :input').prop('disabled', false);
 								_this.updateEvent(data);
 							});
 						});
 					}
 				},
 				close: function(ev, ui) {
-					$(this).dialog("destroy");
-					$(this).remove();
+					$(this).dialog("destroy").remove();
 				}
 			})
 		} else {
 			div.addClass('eventeditor-hidden');
-			editingeventform[0].reset();
+			eventform[0].reset();
 			win.removeClass('editing');
-			ajax_request('/calendars/events/' + calEvent.id, 'DELETE', params, function(data) {
+			ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
+				_this.calEvent = null;
 				$('#event_status').load('/desync', function() {
-					$('#editingevent :input').prop('disabled', false);
+					$('#eventform :input').prop('disabled', false);
 					_this.updateEvent(data);
 				});
 			});
 		}
-	});
-
-	$(".calcncl").click(function() {
+	} else {
+		//new event, do nothing
 		div.addClass('eventeditor-hidden');
-		editingeventform[0].reset();
+		eventform[0].reset();
 		win.removeClass('editing');
-		$('#event_status').load('/desync', function() {
-			$('#editingevent :input').prop('disabled', false);
-		});
-	});
+	}
+});
 
-	return false;
+win.click(function(e) {
+	e.stopPropagation();
+});
+div.click(function(e) {
+	e.stopPropagation();
+});
+$(document).click(function() {
+	div.addClass('eventeditor-hidden');
+	eventform[0].reset();
+	win.removeClass('editing');
+	$('#event_status').load('/desync', function() {
+		$('#eventform :input').prop('disabled', false);
+	});
+})
+this.eventEditor = div;
 };
 
-caCalendar.prototype.showNewEventEditor = function(date, allDay, jsEvent, view) {
+caCalendar.prototype.showEventEditor = function() {
 	var _this = this;
+
 	var win = this.el;
+
 	if (win.hasClass('editing')) return false;
+
 	win.addClass('editing');
-	var d = format_date(date);
 
-	var el = $(jsEvent.target);
+	this.eventEditor.removeClass('eventeditor-hidden');
 
-	this.newEventEditor.removeClass('eventeditor-hidden');
-	var x = this.newEventEditor.offset();
-	var y = jsEvent.clientX;
-	this.newEventEditor.offset({
-		top: jsEvent.pageY,
-		left: jsEvent.pageX
-	});
-	this.newEventEditor.css('z-index', 99999);
-	var z = this.newEventEditor.offset();
-	$('#newevent input[name=start]').val(d);
-	$('#newevent input[name=end]').val(d);
-	$("#err1").html('');
-	
-	this.dropdowncontrol.selectpeople1[0].selectize.clear();
-	this.dropdowncontrol.selectrelation1[0].selectize.clear();
-	this.dropdowncontrol.selectlocation1[0].selectize.clear();
-	this.dropdowncontrol.selectinterval1[0].selectize.clear();
+	this.dropdowncontrol.selectpeople[0].selectize.clear();
+	this.dropdowncontrol.selectpeople[0].selectize.refreshOptions();
+	this.dropdowncontrol.selectpeople[0].selectize.refreshItems();
+	this.dropdowncontrol.selectrelation[0].selectize.clear();
+	this.dropdowncontrol.selectrelation[0].selectize.refreshOptions();
+	this.dropdowncontrol.selectrelation[0].selectize.refreshItems();
+	this.dropdowncontrol.selectlocation[0].selectize.clear();
+	this.dropdowncontrol.selectlocation[0].selectize.refreshOptions();
+	this.dropdowncontrol.selectlocation[0].selectize.refreshItems();
+	this.dropdowncontrol.selectinterval[0].selectize.clear();
 
-	return false;
+	if (arguments.length === 3) {
+		//for event click, will receive calEvent, jsEvent, view
+		var calEvent = arguments[0];
+		var jsEvent = arguments[1];
+		var view = arguments[2];
+		_this.calEvent = calEvent;
+
+		if (calEvent.ca_annotation_id) return false;
+
+		this.hideEvent(calEvent, jsEvent, view);
+		this.eventEditor.offset({
+			top: jsEvent.pageY,
+			left: jsEvent.pageX
+		});
+		this.eventEditor.css('z-index', 99999);
+
+		$('#event_status').load('/sync', {
+			id: 'event_' + calEvent.id
+		}, function(data) {
+			if (data.indexOf('please try again') !== -1) {
+				$('#eventform :input').prop('disabled', true);
+
+				$("#calcncl").prop('disabled', false);
+				$("#calcncl").click(function() {
+					div.addClass('eventeditor-hidden');
+					eventform[0].reset();
+					win.removeClass('editing');
+					$('#event_status').load('/desync', function() {
+						$('#eventform :input').prop('disabled', false);
+						return false;
+					});
+				});
+			}
+
+			var el = $(jsEvent.target).closest('.fc-event');
+
+			var div = $('#eventeditor');
+
+			var eventform = $('#eventform');
+
+			var start = format_date(calEvent.start);
+
+			var end = format_date(calEvent.end);
+
+			var end_after = calEvent.end_after;
+
+			$('<input>').attr({
+				type: 'hidden',
+				name: 'id'
+			}).appendTo('#eventform');
+
+
+			var people_list = [];
+			if (calEvent.people) people_list = calEvent.people.split(',');
+			for (var i in people_list) {
+				_this.dropdowncontrol.selectpeople[0].selectize.addItem(people_list[i])
+			}
+
+			_this.dropdowncontrol.selectrelation[0].selectize.addItem(calEvent.relation);
+
+			_this.dropdowncontrol.selectlocation[0].selectize.addItem(calEvent.ca_location_location);
+
+			_this.dropdowncontrol.selectinterval[0].selectize.addItem(calEvent.rinterval);
+
+			$('#eventform textarea[name=title]').val(calEvent.title);
+			$('#eventform input[name=rrepeat]').val(calEvent.rrepeat);
+			$('#eventform input[name=start]').val(start);
+			$('#eventform input[name=end]').val(end);
+			$('#eventform input[name=end_after]').val(end_after);
+			$("#err").html('');
+
+			return false;
+		});
+	} else {
+		//for day click, will receive date, allDay, jsEvent, view
+		var date = arguments[0];
+		var allDay = arguments[1];
+		var jsEvent = arguments[2];
+		var view = arguments[3];
+
+		var d = format_date(date);
+
+		var el = $(jsEvent.target);
+
+		//		var x = this.newEventEditor.offset();
+		//		var y = jsEvent.clientX;
+		this.eventEditor.offset({
+			top: jsEvent.pageY,
+			left: jsEvent.pageX
+		});
+		this.eventEditor.css('z-index', 99999);
+
+		$('#eventform input[name=start]').val(d);
+		$('#eventform input[name=end]').val(d);
+		$("#err").html('');
+
+		return false;
+	}
 };
 
 caCalendar.prototype.updateEvent = function(data) {
@@ -556,7 +519,7 @@ caCalendar.prototype.hideEvent = function(event, jsEvent, view) {
 	return false;
 };
 
-caCalendar.prototype.validateForm1 = function(el) {
+caCalendar.prototype.validateForm = function(el) {
 	var fm = document.forms[el];
 	var err = '';
 
@@ -600,103 +563,32 @@ caCalendar.prototype.validateForm1 = function(el) {
 
 		//validate relationship
 		var relation = fm['relation'].value;
-		var people = this.dropdowncontrol.selectpeople1[0].selectize.getValue();
+		var people = this.dropdowncontrol.selectpeople[0].selectize.getValue();
 		var count = people.length;
 
 		if (count > 0) {
 			if (count == 1) {
-				this.dropdowncontrol.selectrelation1[0].selectize.clear();
-				this.dropdowncontrol.selectrelation1[0].selectize.addOption({value: 'self', text: 'self'});
-				this.dropdowncontrol.selectrelation1[0].selectize.addItem('self');
+				this.dropdowncontrol.selectrelation[0].selectize.clear();
+				this.dropdowncontrol.selectrelation[0].selectize.addOption({
+					value: 'self',
+					text: 'self'
+				});
+				this.dropdowncontrol.selectrelation[0].selectize.addItem('self');
 			} else {
 				if (!relation || relation == '') {
-					this.dropdowncontrol.selectrelation1[0].selectize.clear();
-					this.dropdowncontrol.selectrelation1[0].selectize.addOption({value: 'related', text: 'related'});
-					this.dropdowncontrol.selectrelation1[0].selectize.addItem('related');
+					this.dropdowncontrol.selectrelation[0].selectize.clear();
+					this.dropdowncontrol.selectrelation[0].selectize.addOption({
+						value: 'related',
+						text: 'related'
+					});
+					this.dropdowncontrol.selectrelation[0].selectize.addItem('related');
 				}
 			}
 		} else {
 			if (relation) {
 				//invalid values, delete relationship and people
-				this.dropdowncontrol.selectpeople1[0].selectize.clear();
-				this.dropdowncontrol.selectrelation1[0].selectize.clear();
-				err += 'Invalid people and relationship!<br>';
-			}
-		}
-	} else {
-		err += 'Start time cannot be empty!<br>';
-	}
-	return err;
-};
-
-caCalendar.prototype.validateForm2 = function(el) {
-	var fm = document.forms[el];
-	var err = '';
-
-	//validate time
-	var start = fm['start'].value;
-	var end = fm['end'].value || start;
-
-	if (start) {
-		var _start = $.fullCalendar.parseDate(start);
-		var _end = $.fullCalendar.parseDate(end);
-
-		if (_start.getTime() >= _end.getTime()) {
-			_end = _end.setHours(_start.getHours() + 1);
-			_end = new Date(_end);
-			fm.elements['end'].value = format_date(_end);
-		}
-
-		//validate repeating events
-		var repeat = fm['rrepeat'].value;
-		var interval = fm['rinterval'].value;
-		var end_after = fm['end_after'].value;
-		var _end_after = $.fullCalendar.parseDate(end_after);
-
-		if (repeat && parseInt(repeat) && parseInt(repeat) > 0 && interval && interval && end_after && end_after && _end_after) {
-			//check whether end_after is after the end time, if not, make it valid
-			if (_end_after.getTime() < _end.getTime()) {
-				_end_after = new Date(_end);
-				fm['end_after'].value = format_date(_end_after);
-			}
-		} else {
-			if (!repeat && !interval && !end_after) {
-				//empty fields
-			} else {
-				//invalid repeating events
-				fm['rrepeat'].value = null;
-				this.dropdowncontrol.selectinterval2[0].selectize.clear();
-				fm['end_after'].value = null;
-				err += 'Invalid repeating events!<br>';
-			}
-		}
-
-		//validate relationship
-		var relation = fm['relation'].value;
-		var people = fm['people'];
-		var count = 0;
-		for (var i = 0; i < people.length; i++) {
-			if (people[i].selected) {
-				count++;
-			}
-		}
-		if (count > 0) {
-			if (count == 1) {
-				this.dropdowncontrol.selectrelation2[0].selectize.clear();
-				this.dropdowncontrol.selectrelation2[0].selectize.addOption({value: 'self', text: 'self'});
-				this.dropdowncontrol.selectrelation2[0].selectize.addItem('self');
-			} else {
-				if (!relation || relation == '') {
-					this.dropdowncontrol.selectrelation2[0].selectize.clear();
-					this.dropdowncontrol.selectrelation2[0].selectize.addOption({value: 'related', text: 'related'});
-					this.dropdowncontrol.selectrelation2[0].selectize.addItem('related');
-				}
-			}
-		} else {
-			if (relation) {
-				//invalid values, delete relationship and people
-				this.dropdowncontrol.selectpeople2[0].selectize.clear();
-				this.dropdowncontrol.selectrelation2[0].selectize.clear();
+				this.dropdowncontrol.selectpeople[0].selectize.clear();
+				this.dropdowncontrol.selectrelation[0].selectize.clear();
 				err += 'Invalid people and relationship!<br>';
 			}
 		}
@@ -750,8 +642,7 @@ caCalendar.prototype.searchLocations = function(loc, el, callback) {
 						}
 					},
 					close: function(ev, ui) {
-						$(this).dialog("destroy");
-						$(this).remove();
+						$(this).dialog("destroy").remove();
 					}
 				})
 			} else {

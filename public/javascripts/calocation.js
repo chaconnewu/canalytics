@@ -1,6 +1,7 @@
 function caLocation() {
 	var _this = this;
 	this.location_list = [];
+	this.location_options = [];
 
 	$.get('/maps/'+window.ca_case_id, function(data){
 		for(var i=0; i<data.length; i++){

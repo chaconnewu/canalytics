@@ -6,12 +6,12 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2014-01-24 16:34:04Z
+** Built at: 2014-02-06 20:52:31Z
 */
 
 
 (function() {
-  var $, Annotator, Delegator, LinkParser, Range, fn, functions, g, gettext, util, _Annotator, _gettext, _i, _j, _len, _len1, _ref, _ref1, _t,
+  var Annotator, Delegator, LinkParser, Range, fn, functions, g, gettext, util, _Annotator, _gettext, _i, _j, _len, _len1, _ref, _ref1, _t,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -43,8 +43,6 @@
   if (!(JSON && JSON.parse && JSON.stringify)) {
     console.error(_t("Annotator requires a JSON implementation: have you included lib/vendor/json2.js?"));
   }
-
-  $ = jQuery.sub();
 
   $.flatten = function(array) {
     var flatten;
@@ -1322,13 +1320,13 @@
           input = $('<select class="field-interval"><option value=""></option><option value="day(s)">day(s)</option><option value="week(s)">week(s)</option><option value="month(s)">month(s)</option></select>');
           break;
         case 'select-location':
-          input = $('<select class="field-location"/>');
+          input = $('<select class="field-location" tabindex="6"/>');
           break;
         case 'select-people':
-          input = $('<select class="field-people" multiple/>');
+          input = $('<select class="field-people" multiple tabindex="6"/>');
           break;
         case 'select-relation':
-          input = $('<select class="field-relation"/>');
+          input = $('<select class="field-relation" tabindex="6"/>');
       }
       element.append(input);
       input.attr({
@@ -1344,51 +1342,107 @@
           $('.field-interval').selectize();
           break;
         case 'select-location':
-          $('.field-location').selectize({
+          window.fieldlocation = $('.field-location').selectize({
             hideSelected: true,
-            maxOptions: 4,
-            create: function(input) {
+            create: function(input, callback) {
               var that;
               that = this;
               return field.search(input, superthis.element, function(loc_selected) {
+                var option, _k, _len2, _ref2;
                 if (loc_selected) {
                   window.top.calocation.location_list.push(loc_selected);
-                  return {
-                    value: input,
-                    text: input
-                  };
+                  window.top.caloction.location_list.push({
+                    value: loc_selected,
+                    text: loc_selected
+                  });
+                  _ref2 = window.top.dropdownlists.locationlists;
+                  for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                    option = _ref2[_k];
+                    if (option[0].selectize !== that) {
+                      option[0].selectize.addOption({
+                        value: loc_selected,
+                        text: loc_selected
+                      });
+                      option[0].selectize.refreshOptions();
+                    }
+                  }
+                  if (window.top.camap) {
+                    window.top.camap.newMarker({
+                      lat: addrs[loc_selected].lat(),
+                      lng: addrs[loc_selected].lng(),
+                      location: loc_selected
+                    });
+                  }
+                  return callback({
+                    value: loc_selected,
+                    text: loc_selected
+                  });
                 } else {
-                  return null;
+                  return callback();
                 }
               });
             }
           });
+          window.top.dropdownlists.locationlists.push(window.fieldlocation);
           break;
         case 'select-people':
-          this.annotator.fieldpeople = $('.field-people').selectize({
+          window.fieldpeople = $('.field-people').selectize({
             hideSelected: true,
-            maxOptions: 4,
+            options: window.top.capeople.people_options,
             create: function(input) {
+              var option, _k, _len2, _ref2;
               window.top.capeople.people_list.push(input);
+              window.top.capeople.people_options.push({
+                value: input,
+                text: input
+              });
+              _ref2 = window.top.dropdownlists.peoplelists;
+              for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                option = _ref2[_k];
+                if (option[0].selectize !== this) {
+                  option[0].selectize.addOption({
+                    value: input,
+                    text: input
+                  });
+                  option[0].selectize.refreshOptions();
+                }
+              }
               return {
                 value: input,
                 text: input
               };
             }
           });
+          window.top.dropdownlists.peoplelists.push(window.fieldpeople);
           break;
         case 'select-relation':
-          $('.field-relation').selectize({
+          window.fieldrelation = $('.field-relation').selectize({
             hideSelected: true,
-            maxOptions: 4,
             create: function(input) {
+              var option, _k, _len2, _ref2;
               window.top.capeople.relation_list.push(input);
+              window.top.capeople.relation_options.push({
+                value: input,
+                text: input
+              });
+              _ref2 = window.top.dropdownlists.relationlists;
+              for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                option = _ref2[_k];
+                if (option[0].selectize !== this) {
+                  option[0].selectize.addOption({
+                    value: input,
+                    text: input
+                  });
+                  option[0].selectize.refreshOptions();
+                }
+              }
               return {
                 value: input,
                 text: input
               };
             }
           });
+          window.top.dropdownlists.relationlists.push(window.fieldrelation);
       }
       this.fields.push(field);
       return field.element;

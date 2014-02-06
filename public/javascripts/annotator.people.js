@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2014-01-24 16:06:46Z
+** Built at: 2014-02-06 21:24:13Z
 */
 
 
@@ -85,26 +85,30 @@
     };
 
     People.prototype.updateField1 = function(field, annotation) {
-      var people_list;
+      var people_list, person, selectize, _i, _len, _results;
       people_list = [];
       if (annotation.people != null) {
         people_list = annotation.people;
       }
-      return $(field).find('select option').each(function() {
-        $(this).prop('selected', false);
-        if (people_list.indexOf($(this).val()) > -1) {
-          return $(this).prop('selected', true);
+      selectize = window.fieldpeople[0].selectize;
+      selectize.clear();
+      if (people_list.length > 0) {
+        _results = [];
+        for (_i = 0, _len = people_list.length; _i < _len; _i++) {
+          person = people_list[_i];
+          _results.push(selectize.addItem(person));
         }
-      });
+        return _results;
+      }
     };
 
     People.prototype.updateField2 = function(field, annotation) {
-      return $(field).find('select option').each(function() {
-        $(this).prop('selected', false);
-        if ($(this).val() === annotation.relation) {
-          return $(this).attr('selected', 'selected');
-        }
-      });
+      var selectize;
+      selectize = window.fieldrelation[0].selectize;
+      selectize.clear();
+      if (annotation.relation) {
+        return selectize.addItem(annotation.relation);
+      }
     };
 
     People.prototype.setAnnotationPeople = function(field, annotation) {
@@ -119,13 +123,25 @@
           if (this.input2.val()) {
             return annotation.relation = this.input2.val();
           } else {
-            return annotation.relation = 'self';
+            annotation.relation = 'self';
+            window.fieldrelation[0].selectize.clear();
+            window.fieldrelation[0].selectize.addOption({
+              value: 'self',
+              text: 'self'
+            });
+            return window.fieldrelation[0].selectize.addItem('self');
           }
         } else {
           if (this.input2.val()) {
             return annotation.relation = this.input2.val();
           } else {
-            return annotation.relation = 'related';
+            annotation.relation = 'related';
+            window.fieldrelation[0].selectize.clear();
+            window.fieldrelation[0].selectize.addOption({
+              value: 'related',
+              text: 'related'
+            });
+            return window.fieldrelation[0].selectize.addItem('related');
           }
         }
       }

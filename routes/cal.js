@@ -85,7 +85,6 @@ exports.read = function(req, res) {
 };
 
 exports.create = function(req, res) {
-	console.log(req.body);
 	if (typeof req.session.username === "undefined") {
 		res.redirect('/');
 	} else {

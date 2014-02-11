@@ -11,6 +11,10 @@ exports.createRelation = function(people, relation, cid, callback) {
 
 					var rid = result.insertId;
 					var values = '';
+					
+					if (typeof people === 'string') {
+						people = [ people ];
+					}
 
 					for (var i in people) {
 						values = values + "('" + people[i] + "', " + rid + "),";
@@ -431,6 +435,7 @@ exports.deletePeople = function(rid, delete_list, callback) {
 
 exports.updateEvent = function(id, qs, data, callback) {
 				//update event
+				console.log(data);
 				if (data.idx){
 					//update a repeating event
 					if(data.rrepeat && parseInt(data.rrepeat)>0 && data.rinterval && data.end_after && data.start && data.end) {

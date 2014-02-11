@@ -227,31 +227,22 @@ caWindows.createFilter = function(windowid) {
 	var time_from = $('<span>From: </span><input id="time_from" type="datetime-local" name="from" /><br>').appendTo(div);
 	var time_to = $('<span>To: </span><input id="time_to" type="datetime-local" name="to" />').appendTo(div);
 	
-	var locations = [];
-	var people = [];
-	var relations = [];
 	var time;
-	for (var i in window.calocation.location_list) {
-		locations.push({value: window.calocation.location_list[i], text: window.calocation.location_list[i]});
-	}
-	location_select.selectize({
+	
+	window.dropdownlists.locationlists.push(location_select.selectize({
 		hideSelected: true,
-		options: locations
-	})
-	for (var i in window.capeople.people_list) {
-		people.push({value: window.capeople.people_list[i], text: window.capeople.people_list[i]});
-	}
-	person_select.selectize({
+		options: calocation.location_options
+	}));
+	
+	window.dropdownlists.relationlists.push(person_select.selectize({
 		hideSelected: true,
-		options: people
-	})
-	for (var i in window.capeople.relation_list) {
-		relations.push({value: window.capeople.relation_list[i], text: window.capeople.relation_list[i]});
-	}
-	relation_select.selectize({
+		options: capeople.people_options
+	}));
+
+	window.dropdownlists.relationlists.push(relation_select.selectize({
 		hideSelected: true,
-		options: relations
-	})
+		options: capeople.relation_options
+	}));
 	
 	var data = {};
 	

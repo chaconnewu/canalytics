@@ -69,6 +69,12 @@ $(document).ready(function() {
         mapTypeId: google.maps.MapTypeId.ROADMAP
       };
 	
+	//initialize dropdown lists
+	window.dropdownlists = {};
+	window.dropdownlists.locationlists = [];
+	window.dropdownlists.peoplelists = [];
+	window.dropdownlists.relationlists = [];
+	
 	//register event triggers
 	$(".lefttrigger").click(function(){
 		$(".leftslidingmenu").slideToggleWidth();

@@ -58,7 +58,9 @@ exports.mycase = function(req, res) {
 
 							conn.end();
 
+                            console.log(req.query);
 							res.render('mycase', {
+
 								ca_case_title: req.query.ca_case_title,
 								ca_case_id: req.query.ca_case_id,
 								username: req.session.username,

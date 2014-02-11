@@ -56,9 +56,9 @@ block content
 						a.heading(href='#', onclick="return caWindows.openWindow(this, 'testpad', 'canotepad', 'notepad', 610, 410);") Notepads
 			#activitylog
 		a.lefttrigger(href="#")
-	script
+	script.
 		username = "#{username}"
 		uid = "#{uid}"
 		ca_case_title = "#{ca_case_title}"
-		ca_case_id = "#{ca_case_id}"
+		window.ca_case_id = "#{ca_case_id}"
 	script(src='/javascripts/socketevents.js')

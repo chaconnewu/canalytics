@@ -112,7 +112,7 @@ caGraph.prototype.update = function () {
 							.on('mouseover', function(d){
 								d3.select(this).transition()
 															 .style('stroke', '#00B9D2');
-								_this.div.html(JSON.stringify(_this.nodePair[d.source.id+'_'+d.target.id]))
+								_this.div.html(formatTooltip(_this.nodePair[d.source.id+'_'+d.target.id]))
 												  .style('left', (d3.event.pageX) + 'px')
 													.style('top', (d3.event.pageY-_this.div[0][0].offsetHeight) + 'px');
 
@@ -140,7 +140,9 @@ caGraph.prototype.update = function () {
 								.attr('x', -8)
 								.attr('y', -8)
 								.attr('width', 20)
-								.attr('height', 20);
+								.attr('height', 20)
+                                .call(this.force.drag);
+
 								nodeenter.append('svg:text')
 										.attr('class', 'nodetext')
 										.attr('dx', 12)
@@ -163,6 +165,31 @@ caGraph.prototype.update = function () {
 	});
 	
   this.force.start();
+
+    // Format json-style link data in clean way for display
+    // A typical link looks like:
+    // {"56":{"type":["related"],"facts":["New Event start: 2014-01-01T00:00:00 end: 2014-01-01T01:00:00 "]}}
+    function formatTooltip(obj) {
+        var str = '<ul>';
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                str += '<li><span class="tooltip_key">' + capitaliseFirstLetter(key) + ":</span>";
+                if (Object.prototype.toString.call(obj[key]) === '[object Object]') {
+                    str += formatTooltip(obj[key]);
+                } else {
+                    str += obj[key];
+                }
+            }
+        }
+        str += "</ul>"
+
+        function capitaliseFirstLetter(string)
+        {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        return str;
+    }
 };
 
 caGraph.prototype.reload = function(data) {

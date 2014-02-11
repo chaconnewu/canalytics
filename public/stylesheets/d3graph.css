@@ -6,3 +6,18 @@
   pointer-events: none;
   font: 12px Arial;
 }
+
+.tooltip ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.tooltip ul li {
+    padding-left: 14px;
+}
+
+.tooltip_key {
+    font-weight: bold;
+    margin-right: 14px;
+}

@@ -75,7 +75,10 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 		case 'cal':
 			$.get(href, function(data) {
 				cacalendar = new caCalendar(win, {
-					events: data
+					events: data,
+                    year: 2015,
+                    month: 7,
+                    date: 10
 				});
 				_this.createFilter(windowid);
 			})
@@ -139,7 +142,7 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 		css: {
 			"width": width,
 			"height": height,
-			"overflow": "hidden",
+			"overflow": "scroll",
 			"border": "1px solid black"
 		}
 	}).appendTo(box);

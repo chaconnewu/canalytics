@@ -140,7 +140,7 @@ caCalendar.prototype.setupEventEditor = function() {
 
 	var d = new Date();
 
-	var html = "<form id='eventform' name='eventform'><input type='hidden' name='ca_case_id' value='" + window.ca_case_id + "'><input type='hidden' name='rindex' value=0><label for='title'>Notes:</label><textarea name='title' cols='27' rows='4'>New Event</textarea><br><select id='selectlocation' placeholder='Location' name='ca_location_location' tabindex='6'></select><br><select id='selectpeople' multiple placeholder='People' name='people' tabindex='6'></select><br><select id='selectrelation' placeholder='Relation' name='relation' tabindex='6'></select><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select id='selectinterval' name='rinterval'><option value='day(s)'>Day(s)</option><option value='week(s)'>Week(s)</option><option value='month(s)'>Month(s)</option></select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after'><br><input id='calpost' class='form_btn' type='button' value='Done'><input id='calcncl' class='form_btn' type='button' value='Cancel'><input id='caldel' class='form_btn' type='button' value='Delete'><br><div id='event_status'></div></form>";
+	var html = "<form id='eventform' name='eventform'><input type='hidden' name='ca_case_id' value='" + window.ca_case_id + "'><input type='hidden' name='rindex' value=0><label for='title'>Notes:</label><div><textarea name='title' style='width:97%' rows='4'>New Event</textarea></div><br><select id='selectlocation' placeholder='Location' name='ca_location_location' tabindex='6'></select><br><select id='selectpeople' multiple placeholder='People' name='people' tabindex='6'></select><br><select id='selectrelation' placeholder='Relation' name='relation' tabindex='6'></select><br><label for='start'>From:</label><input type='datetime-local' name='start' value='" + d + "'><br><label for='end'>To:</label><input type='datetime-local' name='end' value='" + d + "'><br><label for='rrepeat'>Repeat Every</label><input type='text' name='rrepeat'> <select id='selectinterval' name='rinterval'><option value='day(s)'>Day(s)</option><option value='week(s)'>Week(s)</option><option value='month(s)'>Month(s)</option></select><br><label for='end_after'>End On Date:</label><input type='datetime-local' name='end_after'><br><input id='calpost' class='form_btn' type='button' value='Done'><input id='calcncl' class='form_btn' type='button' value='Cancel'><input id='caldel' class='form_btn' type='button' value='Delete'><br><div id='event_status'></div></form>";
 
 	var div = $('<div id="eventeditor" class="eventeditor"></div>').appendTo($('body'));
 	div.addClass('eventeditor-hidden');
@@ -151,7 +151,7 @@ caCalendar.prototype.setupEventEditor = function() {
 	$("#calpost").click(function() {
 		var err = _this.validateForm("eventform");
 		if (err) {
-			$("#errmsg").html(err);
+			$("#errmsg").html(err).show();
 		} else {
 			var params = eventform.serialize();
 			if (_this.calEvent) {
@@ -208,6 +208,7 @@ caCalendar.prototype.setupEventEditor = function() {
 					})
 				} else {
 					div.addClass('eventeditor-hidden');
+                    $("#errmsg").html("").hide();
 					eventform[0].reset();
 					win.removeClass('editing');
 					ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
@@ -221,6 +222,7 @@ caCalendar.prototype.setupEventEditor = function() {
 		} else {
 			//new event
 			div.addClass('eventeditor-hidden');
+            $("#errmsg").html("").hide();
 			eventform[0].reset();
 			win.removeClass('editing');
 			ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
@@ -230,6 +232,7 @@ caCalendar.prototype.setupEventEditor = function() {
 //
 $("#calcncl").click(function() {
 	div.addClass('eventeditor-hidden');
+    $("#errmsg").html("").hide();
 	eventform[0].reset();
 	win.removeClass('editing');
 	_this.calEvent = null;
@@ -239,6 +242,7 @@ $("#calcncl").click(function() {
 });
 //
 $("#caldel").click(function() {
+    $("#errmsg").html("").hide();
 	if (_this.calEvent) {
 		//existing event
 		if (_this.calEvent.rrepeat) {
@@ -543,6 +547,10 @@ caCalendar.prototype.validateForm = function(el) {
 	//validate time
 	var start = fm['start'].value;
 	var end = fm['end'].value || start;
+
+    if (fm["title"].value ==="") {
+        err += 'Event title cannot be empty!<br>'
+    }
 
 	if (start) {
 		var _start = $.fullCalendar.parseDate(start);

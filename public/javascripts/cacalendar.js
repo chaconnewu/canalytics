@@ -42,6 +42,7 @@ caCalendar.prototype.setupDropDownList = function() {
 	this.dropdowncontrol.selectlocation = $("#selectlocation").selectize({
 		hideSelected: true,
 		options: calocation.location_options,
+        addPrecedence: true,
 		create: function(input, callback) {
 			_this.searchLocations(input, 'eventeditor', function(loc_selected) {
 				if (loc_selected) {

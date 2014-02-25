@@ -121,7 +121,10 @@ a.parktrigger:hover {
 }
 
 a.active.parktrigger {
-	background: url(/imgs/dhxwins_dhx_terrace/buttons.gif) no-repeat -51px -37px;
+	background: url(/imgs/dhxwins_dhx_terrace/buttons.gif) no-repeat -83px -5px;
+}
+a.active.parktrigger:hover {
+    background: url(/imgs/dhxwins_dhx_terrace/buttons.gif) no-repeat -83px -21px;
 }
 
 a.closetrigger{
@@ -204,7 +207,6 @@ a.active.closetrigger {
 	box-shadow:         3px 3px 13px rgba(50, 50, 50, 0.75);
 	border: solid 1px #AAAAAA;
 	background: #FFFFFF;
-	visibility: hidden;
 	font-family: "Times New Roman";
 }
 

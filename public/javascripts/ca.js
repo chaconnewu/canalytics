@@ -123,12 +123,12 @@ $(document).ready(function() {
 jQuery.fn.extend({
   slideShow: function() {
     return this.each(function() {
-      jQuery(this).animate({width: 'show'});
+      jQuery(this).animate({width: 'show'},10);
     });
   },
   slideHide: function() {
     return this.each(function() {
-      jQuery(this).animate({width: 'hide'});
+      jQuery(this).animate({width: 'hide'},10);
     });
   },
   slideToggleWidth: function() {

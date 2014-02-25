@@ -111,7 +111,8 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 			"left": x,
 			"top": y,
 			"width": width + 310,
-			"z-index": 1
+			"z-index": 1,
+            "visibility": "visible"
 		}
 	}).appendTo(this.parentdiv);
 	box.addClass("cabox");
@@ -137,20 +138,27 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 	}).appendTo(header);
 	parker.addClass("parktrigger");
 
+    var box_content = $('<div/>', {
+        css: {
+            "overflow": "hidden",
+            "border": "1px solid black"
+        }
+    }).appendTo(box);
+
 	var win = $('<div/>', {
 		id: windowid,
 		css: {
 			"width": width,
 			"height": height,
 			"overflow": "scroll",
-			"border": "1px solid black"
+			"border": "0px"
 		}
-	}).appendTo(box);
+	}).appendTo(box_content);
 	win.addClass("cawindow");
 
 	var filterbar = $('<div/>', {
 		id: "filterbar_" + windowid,
-	}).appendTo(box);
+	}).appendTo(box_content);
 	filterbar.addClass("filterbar");
 	filterbar.css({
 		height: win.height()
@@ -188,7 +196,7 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 
 	//register event triggers
 	parker.click(function() {
-		win.slideToggle();
+		box_content.slideToggle();
 		parker.toggleClass("active");
 		return false;
 	});
@@ -260,14 +268,14 @@ caWindows.createFilter = function(windowid) {
         var panel_width = 249;
         if($(this).hasClass("active")) {
             container.width(container.width()+panel_width);
-            container.animate({
-                right: parseInt(container.css("right"),10)-panel_width
-            }, "slow");
+//            container.animate({
+//                right: parseInt(container.css("right"),10)-panel_width
+//            }, "slow");
         } else {
             container.width(container.width()-panel_width);
-            container.animate({
-                right: parseInt(container.css("right"),10)+panel_width
-            }, "slow");
+//            container.animate({
+//                right: parseInt(container.css("right"),10)+panel_width
+//            }, "slow");
         }
         return false;
     });

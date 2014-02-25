@@ -164,8 +164,8 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 			var container = $(".centerpanel");
 			var sidepanel = $(".sidepanel");
 			if ($(this).position().top > container.height() - $(this).height()) {
-				container.height(container.height() + 80);
-				sidepanel.height(sidepanel.height() + 80);
+				container.height(container.height() + 800);
+				sidepanel.height(sidepanel.height() + 800);
 			}
 		}
 	});
@@ -212,7 +212,10 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 };
 
 caWindows.createFilter = function(windowid) {
-	var filterbar = $('#filterbar_' + windowid);
+	var filterbar_container = $('#filterbar_' + windowid);
+    var filterbar = $('<div class="rightslidingmenu">').appendTo(filterbar_container);
+    $('<a href="#" class="righttrigger">').appendTo(filterbar_container);
+
 	$('<span>Filter:</span>').appendTo(filterbar);
 		var apply_btn = $('<button type="button" style="margin: 20px; float: right">Apply</button><br><br>').appendTo(filterbar);
 	var location_div = $('<div />').appendTo(filterbar);
@@ -237,7 +240,7 @@ caWindows.createFilter = function(windowid) {
 		options: calocation.location_options
 	}));
 	
-	window.dropdownlists.relationlists.push(person_select.selectize({
+	window.dropdownlists.peoplelists.push(person_select.selectize({
 		hideSelected: true,
 		options: capeople.people_options
 	}));
@@ -248,7 +251,27 @@ caWindows.createFilter = function(windowid) {
 	}));
 	
 	var data = {};
-	
+
+    $(".righttrigger").click(function(){
+        $(this).siblings().slideToggleWidth();
+        $(this).toggleClass("active");
+        var container = $(this).parent().siblings()[1];
+        container = $(container);
+        var panel_width = 249;
+        if($(this).hasClass("active")) {
+            container.width(container.width()+panel_width);
+            container.animate({
+                right: parseInt(container.css("right"),10)-panel_width
+            }, "slow");
+        } else {
+            container.width(container.width()-panel_width);
+            container.animate({
+                right: parseInt(container.css("right"),10)+panel_width
+            }, "slow");
+        }
+        return false;
+    });
+
 	apply_btn.click(function(){
 		var _this = this;
 		data.ca_case_id = window.ca_case_id;

@@ -54,20 +54,73 @@ socket.on('reloadrelation', function(data) {
 	}
 })
 
+socket.on('createlocation', function(data) {
+	if(calocation.location_list.indexOf(data.id)<0) {
+		if (window.camap) {
+			$.get('/maps/locations/position/' + data.id, function(results) {
+				window.camap.newMarker({
+					lat: results[0].lat,
+					lng: results[0].lng,
+					location: data.id
+				});
+			});
+		}
+		
+		calocation.location_list.push(data.id);
+		calocation.location_options.push({
+			value: data.id,
+			text: data.id
+		});
+		for (var i in window.dropdownlists.locationlists) {
+			window.dropdownlists.locationlists[i][0].selectize.addOption({
+				value: data.id,
+				text: data.id
+			});
+			window.dropdownlists.locationlists[i][0].selectize.refreshOptions();
+		}
+	}
+	
+	$('#activitylog').append('<span class="logtext">location <b>' + data.id.substring(0,10) + '...</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+});
+
 socket.on('createevent', function(data) {
 	if (window.cacalendar) {
-		for (var i in data.eventlist) {
-			window.cacalendar.el.fullCalendar('renderEvent', data.eventlist[i]);
+		var results = data.eventlist;
+
+		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
+
+		if (e.length != results.length) {
+			window.cacalendar.el.fullCalendar('removeEvents', results[0].id);
+			for (var i = 0; i < results.length; i++) {
+				window.cacalendar.el.fullCalendar('renderEvent', results[i]);
+			}
+		} else {
+			for (var i = 0; i < results.length; i++) {
+				$.extend(e[i], results[i]);
+				window.cacalendar.el.fullCalendar('updateEvent', e[i]);
+			}
 		}
 	}
 				$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+
 });
 
 socket.on('updateevent', function(data) {
 	if (window.cacalendar) {
-		window.cacalendar.el.fullCalendar('removeEvents', data.id);
-		for (var i in data.eventlist) {
-			window.cacalendar.el.fullCalendar('renderEvent', data.eventlist[i]);
+		var results = data.eventlist;
+
+		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
+
+		if (e.length != results.length) {
+			window.cacalendar.el.fullCalendar('removeEvents', results[0].id);
+			for (var i = 0; i < results.length; i++) {
+				window.cacalendar.el.fullCalendar('renderEvent', results[i]);
+			}
+		} else {
+			for (var i = 0; i < results.length; i++) {
+				$.extend(e[i], results[i]);
+				window.cacalendar.el.fullCalendar('updateEvent', e[i]);
+			}
 		}
 	}
 					$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].substring(0,10) + '...</b> is updated by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
@@ -76,17 +129,47 @@ socket.on('updateevent', function(data) {
 socket.on('deleteevent', function(data) {
 	if (window.cacalendar) {
 		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
-							$('#activitylog').append('<span class="logtext">event <b>' + e[0].title.substring(0,10) + '...</b> is deleted by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
 		window.cacalendar.el.fullCalendar('removeEvents', data.id);
 	}
+	$('#activitylog').append('<span class="logtext">event <b>' + e[0].title.substring(0,10) + '...</b> is deleted by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
 });
 
 socket.on('createrelation', function(data) {
 	if (window.cagraph) {
 		window.cagraph.load(data);
 	}
+	
+	if(capeople.relation_list.indexOf(data.relationlist[0].relation)<0) {
+		capeople.relation_list.push(data.relationlist[0].relation);
+		capeople.relation_options.push({
+			value: data.relationlist[i].relation,
+			text: data.relationlist[i].relation
+		});
+		for (var i in window.dropdownlists.relationlists) {
+			window.dropdownlists.relationlists[i][0].selectize.addOption({
+				value: data.relationlist[0].relation,
+				text: data.relationlist[0].relation
+			});
+			window.dropdownlists.relationlists[i][0].selectize.refreshOptions();
+		}
+	}
+	
 	var people = "";
 	for(var i in data.relationlist){
+		if(capeople.people_list.indexOf(data.relationlist[i].name)<0) {
+			capeople.people_list.push(data.relationlist[i].name);
+			capeople.people_options.push({
+				value: data.relationlist[i].name,
+				text: data.relationlist[i].name
+			});
+			for (var j in window.dropdownlists.peoplelists) {
+				window.dropdownlists.peoplelists[j][0].selectize.addOption({
+					value: data.relationlist[i].name,
+					text: data.relationlist[i].name
+				});
+				window.dropdownlists.peoplelists[j][0].selectize.refreshOptions();
+			}
+		}
 		people += data.relationlist[i].name + ' ';
 	}
 						$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
@@ -96,7 +179,27 @@ socket.on('updaterelation', function(data) {
 	if (window.cagraph) {
 		window.cagraph.load(data);
 	}
-							$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + data.relationlist[0].people + ' is updated by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+	
+	var people = "";
+	for(var i in data.relationlist){
+		if(capeople.people_list.indexOf(data.relationlist[i].name)<0) {
+			capeople.people_list.push(data.relationlist[i].name);
+			capeople.people_options.push({
+				value: data.relationlist[i].name,
+				text: data.relationlist[i].name
+			});
+			for (var j in window.dropdownlists.peoplelists) {
+				window.dropdownlists.peoplelists[j][0].selectize.addOption({
+					value: data.relationlist[i].name,
+					text: data.relationlist[i].name
+				});
+				window.dropdownlists.peoplelists[j][0].selectize.refreshOptions();
+			}
+		}
+		people += data.relationlist[i].name + ' ';
+	}
+	
+							$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is updated by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
 });
 
 socket.on('deleterelation', function(data) {
@@ -212,128 +315,6 @@ socket.on('DBAnnotationDeleted', function(data) {
 				myAnnotator.plugins['Store'].unregisterAnnotation(annotation);
 			}
 		}
-	}
-});
-
-// when someone creates/updates an event, the server push it to
-// our client through this event with a relevant data
-socket.on('DBEventUpdated', function(data) {
-	var el = $("#" + data.el);
-
-	if (el.length > 0) {
-		var results = data.eventlist;
-		var e = el.fullCalendar('clientEvents', results[0].id);
-
-var fields;
-		if (e.length != results.length) {
-			el.fullCalendar('removeEvents', results[0].id);
-			for (var i = 0; i < results.length; i++) {
-				el.fullCalendar('renderEvent', results[i]);
-				if (results[i].ca_location_location) {
-					if (calocation.location_list.indexOf(results[i].ca_location_location) < 0) {
-															$('#activitylog').append('<span class="logtext">location <b>' + results[i].ca_location_location + '</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + data.updated + '</font></span><br>');
-						calocation.location_list.push(results[i].ca_location_location);
-									fields = $('select[name="locations"]');
-									fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
-									fields.trigger("chosen:updated");
-						fields = $('.field-location', $("iframe").contents());
-						fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
-						fields.trigger("chosen:updated");
-						if (window.camap) {
-							$.get('/maps/locations/position/' + results[i].ca_location_location, function(loc) {
-								window.camap.newMarker({
-									lat: loc[0].lat,
-									lng: loc[0].lng,
-									location: loc[0].location
-								});
-
-							});
-						}
-							fields = $("select[name='ca_location_location']");
-							fields.append('<option value="' + results[i].ca_location_location + '">' + results[i].ca_location_location + '</option>');
-							fields.trigger("chosen:updated");
-					}
-				}
-				if (results[i].people) {
-					var peoplelist = results[i].people.split(',');
-					for (var j in peoplelist) {
-						if (capeople.people_list.indexOf(peoplelist[j]) < 0) {
-							capeople.people_list.push(peoplelist[j]);
-								fields = $('.field-people', $("iframe").contents())
-								fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
-								fields.trigger("chosen:updated");
-								fields = $("select[name='people']")
-								fields.append('<option value="' + peoplelist[j] + '">' + peoplelist[j] + '</option>');
-								fields.trigger("chosen:updated");
-							
-						}
-					}
-				}
-				if (results[i].relation) {
-					if (capeople.relation_list.indexOf(results[i].relation) < 0) {
-						capeople.relation_list.push(results[i].relation);
-									fields = $('.field-relation', $("iframe").contents());
-									fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
-									fields.trigger("chosen:updated");
-							fields = $("select[name='relation']");
-							fields.append('<option value="' + results[i].relation + '">' + results[i].relation + '</option>');
-							fields.trigger("chosen:updated");
-					}
-				}
-			}
-		} else {
-			for (var i = 0; i < results.length; i++) {
-				$.extend(e[i], results[i]);
-				el.fullCalendar('updateEvent', e[i]);
-				if (results[i].ca_location_location) {
-					if (calocation.location_list.indexOf(results[i].ca_location_location) < 0) {
-															$('#activitylog').append('<span class="logtext">location <b>' + results[i].ca_location_location + '</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + data.updated + '</font></span><br>');
-						calocation.location_list.push(results[i].ca_location_location);
-						fields = $('.field-location', $("iframe").contents());
-						fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
-						fields.trigger("chosen:updated");
-						if (window.camap) {
-							$.get('/maps/locations/position/' + results[i].ca_location_location, function(results) {
-								window.camap.newMarker({
-									lat: results[0].lat,
-									lng: results[0].lng,
-									location: annotation.ca_location_location
-								});
-							});
-						}
-							fields = $("select[name='ca_location_location']");
-							fields.append('<option value="' + results[i].ca_location_location + '">' + results[i].ca_location_location + '</option>');
-							fields.trigger("chosen:updated");
-					}
-				}
-				if (results[i].people) {
-					var peoplelist = results[i].people.split(',');
-					for (var j in peoplelist) {
-						if (capeople.people_list.indexOf(peoplelist[j]) < 0) {
-							capeople.people_list.push(peoplelist[j]);
-								fields = $('.field-people', $("iframe").contents());
-								fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
-								fields.trigger("chosen:updated");
-								fields = $("select[name='people']");
-								fields.append('<option value="' + peoplelist[j] + '">' + peoplelist[j] + '</option>');
-								fields.trigger("chosen:updated");
-						}
-					}
-				}
-				if (results[i].relation) {
-					if (capeople.relation_list.indexOf(results[i].relation) < 0) {
-						capeople.relation_list.push(results[i].relation);
-			fields = $('.field-relation', $("iframe").contents())
-			fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
-			fields.trigger("chosen:updated");
-						fields =	$("select[name='relation']");
-						fields.append('<option value="' + results[i].relation + '">' + results[i].relation + '</option>');
-						fields.trigger("chosen:updated");
-					}
-				}
-			}
-		}
-					$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is updated by <font color=' + '"black">' + data.owner + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 	}
 });
 

@@ -92,6 +92,12 @@ exports.create = function(req, res) {
 		async.waterfall([
 			function(callback) {
 				cautility.createEvent(req.body, function(id){
+					msg.push({
+						operation: 'create',
+						resource: 'event',
+						id: id,
+						updated: new Date()
+					})
 					callback(null, id);
 				})
 			},
@@ -251,6 +257,12 @@ exports.update = function(req, res) {
 			},
 			function(callback) {
 			//read results
+			msg.push({
+				operation: 'update',
+				resource: 'event',
+				id: req.params.id,
+				updated: new Date()
+			})
 			pool.getConnection(function(err, conn) {
 				conn.query("SELECT ca_event.id AS id, ca_event.title AS title, ca_event.start AS start, ca_event.end AS end, ca_event.rrepeat AS rrepeat, ca_event.rinterval AS rinterval, ca_event.end_after AS end_after, ca_event.rindex AS rindex, ca_event.ca_location_location AS ca_location_location, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_event LEFT JOIN ca_relation ON ca_event.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_event.id = " + req.params.id + " GROUP BY ca_event.id, ca_event.rindex", function(err, results) {
 					conn.end();

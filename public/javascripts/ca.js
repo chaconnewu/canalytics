@@ -113,11 +113,6 @@ $(document).ready(function() {
 	
 	var dp = new dataProcessor("/schedulers");
 	dp.init(scheduler);*/
-	$(window).bind('beforeunload',function(){
-		$('#event_status').load('/desync', function() {
-			$('#editingevent :input').prop('disabled', false);
-		});
-	});
 });
 
 jQuery.fn.extend({

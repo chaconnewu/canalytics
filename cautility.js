@@ -68,6 +68,7 @@ exports.createEvent = function(data, callback) {
 };
 
 exports.deleteEvent = function(id, data, callback) {
+	var msg = [];
 	//process event
 	if (data.idx) {
 		//delete a repeating event
@@ -83,6 +84,13 @@ exports.deleteEvent = function(id, data, callback) {
 					conn.query('SELECT * FROM ca_event WHERE id = ' + id, function(err, results) {
 						if(err) throw err;
 
+						msg.push({
+							operation: 'update',
+							resource: 'event',
+							id: id,
+							updated: new Date()
+						})
+						
 						var newend = results[results.length-1].end;
 
 						if(newend) {
@@ -107,6 +115,13 @@ exports.deleteEvent = function(id, data, callback) {
 					conn.query('SELECT * FROM ca_event WHERE id = ' + id, function(err, results) {
 						if(err) throw err;
 
+						msg.push({
+							operation: 'update',
+							resource: 'event',
+							id: id,
+							updated: new Date()
+						})
+						
 						var newend = results[results.length-1].end;
 
 						if(newend) {
@@ -128,6 +143,13 @@ exports.deleteEvent = function(id, data, callback) {
 			conn.query('DELETE FROM ca_event WHERE id = "' + req.params.id + '"', function(err, result) {
 				if (err) throw err;
 
+				msg.push({
+					operation: 'delete',
+					resource: 'event',
+					id: id,
+					updated: new Date()
+				})
+				
 				conn.end();
 				callback(null);
 			})

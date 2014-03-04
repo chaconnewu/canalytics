@@ -146,6 +146,14 @@ io.sockets.on('connection', function(socket){
 		})
 	}, 60 * 1000);
 	
+	socket.on('error', function(err) {
+		if(err === 'handshake error') {
+			console.log('handshake error', err);
+		} else {
+			console.log('io error', err);
+		}
+	});
+	
 	socket.on('disconnect', function() {
 		disconnect(socket);
 		console.log('A socket with sessionID ' + hs.sessionID + ' disconnected!');
@@ -193,6 +201,10 @@ io.sockets.on('connection', function(socket){
 		deleteevent(socket, data);
 	});
 	
+	socket.on('createlocation', function(data){
+		createlocation(socket, data);
+	});
+	
 	socket.on('createrelation', function(data){
 		createrelation(socket, data);
 	});
@@ -208,9 +220,9 @@ io.sockets.on('connection', function(socket){
 	// when a client sends a message, he emits
 	// this event, then the server forwards the
 	// message to other clients in the same workspace
-	socket.on('DBEventUpdated', function(data){
+/*	socket.on('DBEventUpdated', function(data){
 		dbeventupdated(socket, data);
-	});
+	});*/
 	
 	// client subscribtion to a workspace
 	socket.on('subscribe', function(data){
@@ -304,12 +316,17 @@ function deleteevent(socket, data) {
 	io.sockets.in(data.room).emit('deleteevent', data);
 };
 
+function createlocation(socket, data) {
+	console.log('im creating location');
+	io.sockets.in(data.room).emit('createlocation', data);
+};
+
 function createrelation(socket, data) {
 	pool.getConnection(function(err, conn){
 		if(err){
 			conn.end();
 		}else{
-			conn.query("(SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id, ca_event.start AS start, ca_event.end AS end, ca_event.title AS text, ca_event.ca_location_location AS ca_location_location FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id JOIN ca_event ON ca_event.ca_relation_id = ca_relation.id WHERE ca_relation.id = " + data.id + ") UNION (SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.text AS text, ca_annotation.ca_location_location AS ca_location_location FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id JOIN ca_annotation ON ca_annotation.ca_relation_id = ca_relation.id WHERE ca_relation.id = " + data.id + ")", function(err, results){
+			conn.query("SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id WHERE ca_relation.id = " + data.id, function(err, results){
 				if(err) throw err;
 			
 				data.relationlist = results;
@@ -386,13 +403,13 @@ function deleterelation(socket, data){
 
 // receive a new/revised event from a client and
 // send it to the relevant workspace
-function dbeventupdated(socket, data){
+/*function dbeventupdated(socket, data){
 	 // by using 'socket.broadcast' we can send/emit
 	// a message/event to all other clients except
 	// the sender himself
 	console.log("dbeventupdated got data "+data);
 	socket.broadcast.to(data.room).emit('DBEventUpdated', data);
-};
+};*/
 
 
 // subscribe a client to a room

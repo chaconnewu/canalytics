@@ -28,10 +28,15 @@ exports.login = function(req, res){
 };
 
 exports.signup = function(req, res){
+    var msg = '';
 	pool.getConnection(function(err, conn){
-			conn.query("INSERT INTO ca_user SET ?", {username: req.body.username, password: req.body.password, email: req.body.password}, function(err, results){
-				if(err) throw err;
+			conn.query("INSERT INTO ca_user SET ?", {username: req.body.username, password: req.body.password, email: req.body.email}, function(err, results){
+				if(err) {
+                    msg += 'Sign up failed...Something is wrong with the server';
+                    throw err;
+                }
 				conn.end();
+                msg += 'Sign up success!';
 			});
 	})
 	res.redirect('/');

@@ -469,10 +469,10 @@ caCalendar.prototype.updateEvent = function(data) {
 		}
 	}
 
-	var _data = data;
+/*	var _data = data;
 	_data.el = $(this.el).attr('id');
 	_data.room = window.ct;
-	socket.emit('DBEventUpdated', _data);
+	socket.emit('DBEventUpdated', _data);*/
 
 	for (var i in data.msg) {
 		socket.emit(data.msg[i].operation + data.msg[i].resource, {
@@ -653,7 +653,13 @@ caCalendar.prototype.searchLocations = function(loc, el, callback) {
 							var loc_selected = $('input:radio[name=loc]:checked').val();
 							$(this).dialog("close");
 							var params = "location=" + encodeURIComponent(loc_selected) + "&lat=" + addrs[loc_selected].lat() + "&lng=" + addrs[loc_selected].lng();
-							ajax_request('/maps/' + window.ca_case_id, 'POST', params, callback(loc_selected));
+							ajax_request('/maps/' + window.ca_case_id, 'POST', params, function(){
+								socket.emit('createlocation', {
+									room: window.ct,
+									id: loc_selected
+								});
+								callback(loc_selected);
+							});
 						}
 					},
 					close: function(ev, ui) {

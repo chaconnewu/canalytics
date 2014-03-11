@@ -1,12 +1,12 @@
 /*
-** Annotator 1.2.5-dev-b83d51d
+** Annotator 1.2.5-dev-23225ff
 ** https://github.com/okfn/annotator/
 **
 ** Copyright 2012 Aron Carroll, Rufus Pollock, and Nick Stenning.
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-10-04 19:00:16Z
+** Built at: 2014-02-26 18:42:54Z
 */
 
 
@@ -159,13 +159,12 @@
     };
 
     Location.prototype.updateField = function(field, annotation) {
-      $(field).find('select option').each(function() {
-        $(this).prop('selected', false);
-        if ($(this).val() === annotation.ca_location_location) {
-          return $(this).attr('selected', 'selected');
-        }
-      });
-      return $('.field-location').trigger('liszt:updated');
+      var selectize;
+      selectize = window.fieldlocation[0].selectize;
+      selectize.clear();
+      if (annotation.ca_location_location) {
+        return selectize.addItem(annotation.ca_location_location);
+      }
     };
 
     Location.prototype.setAnnotationLocation = function(field, annotation) {

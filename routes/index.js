@@ -46,6 +46,8 @@ exports.logout = function(req, res){
 };
 
 exports.sync = function(req, res){
+	console.log('im syncing');
+	console.log(req.body);
 	if(req.body.id){
 		//a user is trying to edit an existing resource, if the resource is idling, the resource will be blocked for the user, if the resource is busy, the user will be refused.
 		console.log(blocklist);
@@ -67,9 +69,13 @@ exports.sync = function(req, res){
 };
 
 exports.desync = function(req, res){
+	console.log('im desyncing');
+	console.log(blocklist);
+	console.log(userblocklist);
+	console.log(req.session.uid);
 	if(userblocklist[req.session.uid] && userblocklist[req.session.uid]!='') {
 		blocklist[userblocklist[req.session.uid]] = '';
 		userblocklist[req.session.uid] = '';
 	}
-	res.send(req.session.username+" has de-synchronized.");
+	res.send("");
 }

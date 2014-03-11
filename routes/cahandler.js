@@ -58,7 +58,11 @@ exports.mycase = function(req, res) {
 
 							conn.end();
 
-                            console.log(req.query);
+              if(userblocklist[req.session.uid] && userblocklist[req.session.uid]!='') {
+								blocklist[userblocklist[req.session.uid]] = '';
+								userblocklist[req.session.uid] = '';
+							}
+							
 							res.render('mycase', {
 
 								ca_case_title: req.query.ca_case_title,

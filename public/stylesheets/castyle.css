@@ -339,7 +339,7 @@ label {
 }
 
 #activitylog {
-
+	overflow-y: scroll;
 }
 
 .logtime {

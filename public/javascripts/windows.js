@@ -65,6 +65,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 				overflow: 'hidden',
 				style: "border:0;width:100%;height:100%;"
 			}).appendTo(win);
+            _this.hideFilter(windowid);
 			break;
 		case 'map':
 			$.get(href, function(data) {
@@ -90,7 +91,8 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 			})
 			break;
 		case 'notepad':
-			win.html("<iframe name='embed_readwrite' src='http://localhost:9001/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width=600 height=600></iframe>");
+			win.html("<iframe name='embed_readwrite' src='http://localhost:9001/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width='99%' height='98%'></iframe>");
+            _this.hideFilter(windowid);
 		default:
 			break;
 		}
@@ -219,6 +221,11 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 	return win;
 };
 
+caWindows.hideFilter = function(windowid) {
+    $('#filterbar_' + windowid).hide();
+    $('#' + windowid).css('width', '100%')
+}
+
 caWindows.createFilter = function(windowid) {
 	var filterbar_container = $('#filterbar_' + windowid);
     var filterbar = $('<div class="rightslidingmenu">').appendTo(filterbar_container);
@@ -263,7 +270,7 @@ caWindows.createFilter = function(windowid) {
     $(".righttrigger").click(function(){
         $(this).siblings().slideToggleWidth();
         $(this).toggleClass("active");
-        var container = $(this).parent().siblings()[1];
+        var container = $(this).parent().siblings()[0];
         container = $(container);
         var panel_width = 249;
         if($(this).hasClass("active")) {

@@ -7,7 +7,10 @@ exports.createRelation = function(people, relation, cid, callback) {
 					relation: relation,
 					ca_case_id: cid
 				}, function(err, result) {
-					if (err) throw err;
+					if (err) {
+                        console.log('Create people relation failed: ' + err);
+                        throw err;
+                    }
 
 					var rid = result.insertId;
 					var values = '';

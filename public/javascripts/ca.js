@@ -74,7 +74,11 @@ $(document).ready(function() {
 	window.dropdownlists.locationlists = [];
 	window.dropdownlists.peoplelists = [];
 	window.dropdownlists.relationlists = [];
-	
+
+    // resize container when browser window resizes
+    $(window).resize(function() {
+        container.width($(window).width() - panel_width - $(".lefttrigger").width() - 25);
+    })
 	//register event triggers
 	$(".lefttrigger").click(function(){
 		$(".leftslidingmenu").slideToggleWidth();

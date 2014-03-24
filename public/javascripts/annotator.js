@@ -1,12 +1,12 @@
 /*
-** Annotator 1.2.5-dev-b83d51d
+** Annotator 1.2.5-dev-23225ff
 ** https://github.com/okfn/annotator/
 **
 ** Copyright 2012 Aron Carroll, Rufus Pollock, and Nick Stenning.
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2014-02-06 20:52:31Z
+** Built at: 2014-03-05 21:22:52Z
 */
 
 
@@ -815,6 +815,7 @@
       }
       root = this.wrapper[0];
       annotation.ranges || (annotation.ranges = this.selectedRanges);
+      annotation.text || (annotation.text = 'Note');
       normedRanges = [];
       _ref1 = annotation.ranges;
       for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
@@ -1418,6 +1419,7 @@
         case 'select-relation':
           window.fieldrelation = $('.field-relation').selectize({
             hideSelected: true,
+            options: window.top.capeople.relation_options,
             create: function(input) {
               var option, _k, _len2, _ref2;
               window.top.capeople.relation_list.push(input);

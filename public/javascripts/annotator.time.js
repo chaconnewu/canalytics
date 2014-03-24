@@ -1,12 +1,12 @@
 /*
-** Annotator 1.2.5-dev-b83d51d
+** Annotator 1.2.5-dev-23225ff
 ** https://github.com/okfn/annotator/
 **
 ** Copyright 2012 Aron Carroll, Rufus Pollock, and Nick Stenning.
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-08-05 19:52:25Z
+** Built at: 2014-03-05 21:26:24Z
 */
 
 
@@ -166,7 +166,7 @@
     };
 
     Time.prototype.setAnnotationEnd = function(field, annotation) {
-      annotation.end = this.input2.val() || '';
+      annotation.end = this.input2.val() || annotation.start;
       if ((new Date(annotation.start)).getTime() > (new Date(annotation.end)).getTime()) {
         annotation.end = annotation.start;
       }

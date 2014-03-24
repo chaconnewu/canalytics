@@ -1,12 +1,12 @@
 /*
-** Annotator 1.2.5-dev-b83d51d
+** Annotator 1.2.5-dev-23225ff
 ** https://github.com/okfn/annotator/
 **
 ** Copyright 2012 Aron Carroll, Rufus Pollock, and Nick Stenning.
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-09-26 20:21:54Z
+** Built at: 2014-03-21 14:24:24Z
 */
 
 
@@ -73,6 +73,7 @@
 
     Store.prototype.annotationCreated = function(annotation) {
       var _this = this;
+      annotation.color = window.top.usercolor;
       if (__indexOf.call(this.annotations, annotation) < 0) {
         this.registerAnnotation(annotation);
         annotation.ca_case_id = window.top.ca_case_id;
@@ -80,6 +81,10 @@
           if (!(data.id != null)) {
             console.warn(Annotator._t("Warning: No ID returned from server for annotation "), annotation);
           }
+          $.extend(annotation, {
+            id: data.id
+          });
+          data = data.msg;
           return _this.updateAnnotation(annotation, data);
         });
       } else {
@@ -100,15 +105,13 @@
       var _this = this;
       if (__indexOf.call(this.annotations, annotation) >= 0) {
         return this._apiRequest('destroy', annotation, (function(data) {
-          var msg, _i, _len, _ref;
-          data.room = window.top.caseName;
-          window.top.socket.emit('DBAnnotationDeleted', data);
-          _ref = data.msg;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            msg = _ref[_i];
+          var msg, _i, _len;
+          for (_i = 0, _len = data.length; _i < _len; _i++) {
+            msg = data[_i];
             window.top.socket.emit(msg.operation + msg.resource, {
-              room: data.room,
-              id: msg.id
+              room: window.top.ca_case_id,
+              id: msg.id,
+              updated: msg.updated
             });
           }
           return _this.unregisterAnnotation(annotation);
@@ -125,23 +128,17 @@
     };
 
     Store.prototype.updateAnnotation = function(annotation, data) {
-      var msg, _i, _len, _ref;
+      var msg, _i, _len;
       if (__indexOf.call(this.annotations, annotation) < 0) {
         console.error(Annotator._t("Trying to update unregistered annotation!"));
-      } else {
-        data.room = window.top.caseName;
-        $.extend(annotation, {
-          id: data.id
+      }
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        msg = data[_i];
+        window.top.socket.emit(msg.operation + msg.resource, {
+          room: window.top.case_case_id,
+          id: msg.id,
+          updated: msg.updated
         });
-        window.top.socket.emit('DBAnnotationUpdated', data);
-        _ref = data.msg;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          msg = _ref[_i];
-          window.top.socket.emit(msg.operation + msg.resource, {
-            room: data.room,
-            id: msg.id
-          });
-        }
       }
       return $(annotation.highlights).data('annotation', annotation);
     };

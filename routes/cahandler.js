@@ -56,24 +56,30 @@ exports.mycase = function(req, res) {
 
 								map = result[0].map;
 
-							conn.end();
+							conn.query("SELECT color FROM ca_usercase WHERE ca_user_id = " + req.session.uid + " AND ca_case_id = " + req.query['ca_case_id'], function(err, result) {
+								if(err) throw err;
+								
+								var color = result[0].color;
+								
+								conn.end();
 
-              if(userblocklist[req.session.uid] && userblocklist[req.session.uid]!='') {
-								blocklist[userblocklist[req.session.uid]] = '';
-								userblocklist[req.session.uid] = '';
-							}
-							
-							res.render('mycase', {
+	              if(userblocklist[req.session.uid] && userblocklist[req.session.uid]!='') {
+									blocklist[userblocklist[req.session.uid]] = '';
+									userblocklist[req.session.uid] = '';
+								}
 
-								ca_case_title: req.query.ca_case_title,
-								ca_case_id: req.query.ca_case_id,
-								username: req.session.username,
-								uid: req.session.uid,
-								doclist: doclist,
-								cal: cal,
-								graph: graph,
-								map: map
-							});
+								res.render('mycase', {
+									usercolor: color,
+									ca_case_title: req.query.ca_case_title,
+									ca_case_id: req.query.ca_case_id,
+									username: req.session.username,
+									uid: req.session.uid,
+									doclist: doclist,
+									cal: cal,
+									graph: graph,
+									map: map
+								});
+							})
 						})
 					});
 				});
@@ -109,10 +115,11 @@ exports.filter = function(req, res) {
 			condition += relations;
 			condition += ' AND ';
 		}
-		if(req.query.time_from){
+		if(req.query.time_from&&req.query.time_to){
 			condition += 'STR_TO_DATE(start, "%Y-%m-%dT%k:%i") > STR_TO_DATE("' + req.query.time_from + '", "%Y-%m-%dT%k:%i") AND STR_TO_DATE(end, "%Y-%m-%dT%k:%i") < STR_TO_DATE("' + req.query.time_to + '", "%Y-%m-%dT%k:%i")';
 			condition += ' AND ';
 		}
+
 		query += condition;
 		query = query.substring(0, query.length-5);
 		console.log(query);

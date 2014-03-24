@@ -6,7 +6,7 @@ socket.on('connect', function() {
 	// firing back the connect event to the server
 	// and sending the room name for the connected client
 	socket.emit('connect', {
-		room: ca_case_id
+		room: window.ca_case_id
 	});
 });
 
@@ -80,7 +80,7 @@ socket.on('createlocation', function(data) {
 		}
 	}
 	
-	$('#activitylog').append('<span class="logtext">location <b>' + data.id.substring(0,10) + '...</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+	$('#activitylog').append('<span class="logtext">location <b>' + data.id.substring(0,10) + '...</b> is created by <font color="' + data.locationlist[0].color + '"> ' + data.locationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
 socket.on('createevent', function(data) {
@@ -101,7 +101,7 @@ socket.on('createevent', function(data) {
 			}
 		}
 	}
-				$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+				$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is created by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 
 });
 
@@ -123,7 +123,7 @@ socket.on('updateevent', function(data) {
 			}
 		}
 	}
-					$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].substring(0,10) + '...</b> is updated by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+				$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is updated by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
 socket.on('deleteevent', function(data) {
@@ -131,7 +131,7 @@ socket.on('deleteevent', function(data) {
 		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
 		window.cacalendar.el.fullCalendar('removeEvents', data.id);
 	}
-	$('#activitylog').append('<span class="logtext">event <b>' + e[0].title.substring(0,10) + '...</b> is deleted by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+	$('#activitylog').append('<span class="logtext">event <b>' + e[0].title.substring(0,10) + '...</b> is deleted. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
 socket.on('createrelation', function(data) {
@@ -142,8 +142,8 @@ socket.on('createrelation', function(data) {
 	if(capeople.relation_list.indexOf(data.relationlist[0].relation)<0) {
 		capeople.relation_list.push(data.relationlist[0].relation);
 		capeople.relation_options.push({
-			value: data.relationlist[i].relation,
-			text: data.relationlist[i].relation
+			value: data.relationlist[0].relation,
+			text: data.relationlist[0].relation
 		});
 		for (var i in window.dropdownlists.relationlists) {
 			window.dropdownlists.relationlists[i][0].selectize.addOption({
@@ -172,7 +172,7 @@ socket.on('createrelation', function(data) {
 		}
 		people += data.relationlist[i].name + ' ';
 	}
-						$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+						$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is created by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
 socket.on('updaterelation', function(data) {
@@ -199,7 +199,7 @@ socket.on('updaterelation', function(data) {
 		people += data.relationlist[i].name + ' ';
 	}
 	
-							$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is updated by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + new Date() + '</font></span><br>');
+							$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is updated by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
 socket.on('deleterelation', function(data) {
@@ -210,10 +210,10 @@ socket.on('deleterelation', function(data) {
 
 // when someone creates/updates an annotation, the server push it to
 // our client through this event with a relevant data
-socket.on('DBAnnotationUpdated', function(data) {
+socket.on('createannotation', function(data) {
 	var annotation;
 
-	annotation = data.results[0];
+	annotation = data.annotation;
 	annotation.ranges = [];
 	annotation.ranges[0] = {
 		start: annotation.range_start,
@@ -240,64 +240,47 @@ socket.on('DBAnnotationUpdated', function(data) {
 			}
 		}
 	}
+	
+	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is created by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+});
 
-var fields;
-	if (annotation.ca_location_location) {
-		if (calocation.location_list.indexOf(annotation.ca_location_location) < 0) {
-									$('#activitylog').append('<span class="logtext">location <b>' + annotation.ca_location_location + '</b> is created by <font color=' + '"black"> System Administrator</font>. <font class="logtime">' + data.updated + '</font></span><br>');
-			calocation.location_list.push(annotation.ca_location_location);
-			
-			fields = $('.field-location', $("iframe").contents())
-			fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
-			fields.trigger("chosen:updated");
-			if (window.camap) {
-				$.get('/maps/locations/position/' + annotation.ca_location_location, function(results) {
-					window.camap.newMarker({
-						lat: results[0].lat,
-						lng: results[0].lng,
-						location: annotation.ca_location_location
-					});
-				});
-			}
-				fields = $("select[name='ca_location_location']");
-				fields.append('<option value="' + annotation.ca_location_location + '">' + annotation.ca_location_location + '</option>');
-				fields.trigger("chosen:updated");
-		}
-	}
+socket.on('updateannotation', function(data) {
+	var annotation;
 
+	annotation = data.annotation;
+	annotation.ranges = [];
+	annotation.ranges[0] = {
+		start: annotation.range_start,
+		startOffset: annotation.startOffset,
+		end: annotation.range_end,
+		endOffset: annotation.endOffset
+	};
 	if (annotation.people) {
-		for (var j in annotation.people) {
-			if (capeople.people_list.indexOf(annotation.people[j]) < 0) {
-				capeople.people_list.push(annotation.people[j]);
-				fields = $('.field-people', $("iframe").contents());
-				fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
-			fields.trigger("chosen:updated");
-					fields = $("select[name='people']")
-					fields.append('<option value="' + annotation.people[j] + '">' + annotation.people[j] + '</option>');
-								fields.trigger("chosen:updated");
-			
-			}
-		}
+		annotation.people = annotation.people.split(",")
 	}
-	if (annotation.relation) {
-		if (capeople.people_list.indexOf(annotation.relation) < 0) {
-			capeople.relation_list.push(annotation.relation);
-			fields = $('.field-relation', $("iframe").contents());
-			fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
-						fields.trigger("chosen:updated");
-				fields = $("select[name='relation']");
-				fields.append('<option value="' + annotation.relation + '">' + annotation.relation + '</option>');
-							fields.trigger("chosen:updated");
-			
+
+	var ifm = $("#iframe_" + annotation.ca_doc_uuid).get(0);
+	if (ifm) {
+		var myAnnotator = ifm.contentWindow.MyAnnotator;
+		if (myAnnotator) {
+			var i = __indexOf(annotation, myAnnotator.plugins['Store'].annotations);
+			if (i < 0) {
+				myAnnotator.plugins['Store'].registerAnnotation(annotation);
+				myAnnotator.setupAnnotation(annotation, false);
+			} else {
+				var old_annotation = myAnnotator.plugins['Store'].annotations[i];
+				$.extend(old_annotation, annotation);
+				$(old_annotation.highlights).data('annotation', old_annotation);
+			}
 		}
 	}
 	
-	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is updated by <font color=' + '"black">' + data.owner + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is updated by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
 // when someone deletes an annotation, the server push it to
 // our client through this event with a relevant data
-socket.on('DBAnnotationDeleted', function(data) {
+socket.on('deleteannotation', function(data) {
 	var ifm = $("#iframe_" + data.ca_doc_uuid).get(0);
 	if (ifm) {
 		var myAnnotator = ifm.contentWindow.MyAnnotator;
@@ -305,7 +288,9 @@ socket.on('DBAnnotationDeleted', function(data) {
 			var i = __indexOf(data, myAnnotator.plugins['Store'].annotations);
 			if (i >= 0) {
 				var annotation = myAnnotator.plugins['Store'].annotations[i];
-						$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is deleted by <font color=' + '"black">' + data.owner + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+				
+					$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is deleted.<font class="logtime">' + data.updated + '</font></span><br>');
+					
 				var h, _k, _len2, _ref1;
 				_ref1 = annotation.highlights;
 				for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {

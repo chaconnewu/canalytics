@@ -226,20 +226,11 @@ caWindows.createFilter = function(windowid) {
 
 	$('<span>Filter:</span>').appendTo(filterbar);
 		var apply_btn = $('<button type="button" style="margin: 20px; float: right">Apply</button><br><br>').appendTo(filterbar);
-	var location_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_location" value="check_location">').appendTo(location_div);
-	var location_select = $('<select id="filterlocation" multiple placeholder="Select locations..." tabindex="6"/>').appendTo(location_div);
-	var person_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_person" value="check_person">').appendTo(person_div);
-	var person_select = $('<select name="people" multiple placeholder="Select people..." tabindex="6"/>').appendTo(person_div);
-	var relation_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_relation" value="check_relation">').appendTo(relation_div);
-	var relation_select = $('<select name="relation" multiple placeholder="Select relations..." tabindex="6"/>').appendTo(relation_div);
-	var time_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_time" value="check_time"><br>').appendTo(time_div);
-	var div = $('<div />').appendTo(time_div);
-	var time_from = $('<span>From: </span><input id="time_from" type="datetime-local" name="from" /><br>').appendTo(div);
-	var time_to = $('<span>To: </span><input id="time_to" type="datetime-local" name="to" />').appendTo(div);
+	var location_select = $('<select id="filterlocation" multiple placeholder="Select locations..." tabindex="6"/>').appendTo(filterbar);
+	var person_select = $('<select name="people" multiple placeholder="Select people..." tabindex="6"/>').appendTo(filterbar);
+	var relation_select = $('<select name="relation" multiple placeholder="Select relations..." tabindex="6"/>').appendTo(filterbar);
+	var time_from = $('<span>Start After: </span><br><input id="time_from" type="datetime-local" name="from" /><br>').appendTo(filterbar);
+	var time_to = $('<span>And End Before: </span><br><input id="time_to" type="datetime-local" name="to" />').appendTo(filterbar);
 	
 	var time;
 	
@@ -283,19 +274,20 @@ caWindows.createFilter = function(windowid) {
 	apply_btn.click(function(){
 		var _this = this;
 		data.ca_case_id = window.ca_case_id;
-		if($('input[name="check_location"]').is(':checked')){
+		if(location_select.val()){
 			data.location_select = location_select.val();
 		}
-		if($('input[name="check_person"]').is(':checked')){
+		if(person_select.val()){
 			data.person_select = person_select.val();
 		}
-		if($('input[name="check_relation"]').is(':checked')){
+		if(relation_select.val()){
 			data.relation_select = relation_select.val();
 		}
-		if($('input[name="check_time"]').is(':checked')){
+		if($('#time_from').val()&&$('#time_from').val()){
 			data.time_from = $('#time_from').val();
 			data.time_to = $('#time_to').val();
 		}
+
 		$.get('/filter', data, function(results){
 			data = {};
 			console.log(results);

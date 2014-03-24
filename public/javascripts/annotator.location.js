@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2014-02-26 18:42:54Z
+** Built at: 2014-03-05 19:03:53Z
 */
 
 
@@ -124,7 +124,13 @@
                     window.top.camap.placeMarker(addrs[loc_selected], loc_selected);
                   }
                   params = "location=" + encodeURIComponent(loc_selected) + "&lat=" + addrs[loc_selected].lat() + "&lng=" + addrs[loc_selected].lng();
-                  return that.ajax_request('/maps/' + window.top.ca_case_id, 'POST', params, callback(loc_selected));
+                  return that.ajax_request('/maps/' + window.top.ca_case_id, 'POST', params, function() {
+                    socket.emit('createlocation', {
+                      room: window.top.ca_case_id,
+                      id: loc_selected
+                    });
+                    return callback(loc_selected);
+                  });
                 }
               },
               close: function(ev, ui) {

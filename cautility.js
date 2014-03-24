@@ -25,6 +25,7 @@ exports.createRelation = function(people, relation, cid, callback) {
 					conn.query('INSERT INTO ca_person (name, ca_relation_id) VALUES ' + values, function(err, result) {
 						if (err) throw err;
 
+						
 						conn.end();
 						callback(rid);
 					})
@@ -38,6 +39,7 @@ exports.deleteRelation = function(rid, callback) {
 		conn.query('DELETE FROM ca_relation WHERE id = ' + rid, function(err, result) {
 			if (err) throw err;
 
+			
 			conn.end();
 			callback(null);
 		})
@@ -46,7 +48,7 @@ exports.deleteRelation = function(rid, callback) {
 
 exports.createEvent = function(data, callback) {
 	var qs = {};
-	var cols = ['title', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'rindex', 'ca_case_id', 'ca_location_location', 'ca_annotation_id', 'ca_relation_id'];
+	var cols = ['title', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'rindex', 'ca_case_id', 'ca_location_location', 'ca_annotation_id', 'ca_relation_id', 'creator', 'editors', 'color'];
 	
 	Object.keys(data).forEach(function(key) {
 		if (cols.indexOf(key) > -1) {
@@ -67,8 +69,7 @@ exports.createEvent = function(data, callback) {
 	})
 };
 
-exports.deleteEvent = function(id, data, callback) {
-	var msg = [];
+exports.deleteEvent = function(id, data, msg, callback) {
 	//process event
 	if (data.idx) {
 		//delete a repeating event
@@ -84,22 +85,28 @@ exports.deleteEvent = function(id, data, callback) {
 					conn.query('SELECT * FROM ca_event WHERE id = ' + id, function(err, results) {
 						if(err) throw err;
 
-						msg.push({
-							operation: 'update',
-							resource: 'event',
-							id: id,
-							updated: new Date()
-						})
-						
-						var newend = results[results.length-1].end;
-
-						if(newend) {
-							conn.query('UPDATE ca_event SET end_after = "' + newend + '" WHERE id = ' + id, function(err, result) {
+						if(results.length > 0) {
+							var newend = results[results.length-1].end;
+							conn.query('UPDATE ca_event SET end_after = "' + newend + '" WHERE id = ' + id, function(err, result) {							
 								conn.end();
+								msg.push({
+									operation: 'update',
+									resource: 'event',
+									id: id,
+									updated: new Date()
+								})
 								callback(null);
 							})
 						} else {
 							conn.end();
+							
+							msg.push({
+								operation: 'delete',
+								resource: 'event',
+								id: id,
+								updated: new Date()
+							})
+							
 							callback(null);
 						}
 					})
@@ -108,29 +115,34 @@ exports.deleteEvent = function(id, data, callback) {
 		} else {
 			//only delete this event
 			pool.getConnection(function(err, conn) {
-				conn.query('DELETE FROM ca_event WHERE id = "' + id + '" AND rindex = ' + data.idx, function(err, result) {
+				conn.query('DELETE FROM ca_event WHERE id = ' + id + ' AND rindex = ' + data.idx, function(err, result) {
 					if (err) throw err;
 
 					//change the end_after date to the end date of the last repeating event
 					conn.query('SELECT * FROM ca_event WHERE id = ' + id, function(err, results) {
 						if(err) throw err;
 
-						msg.push({
-							operation: 'update',
-							resource: 'event',
-							id: id,
-							updated: new Date()
-						})
-						
-						var newend = results[results.length-1].end;
 
-						if(newend) {
+						if(results.length > 0) {
+							var newend = results[results.length-1].end;
 							conn.query('UPDATE ca_event SET end_after = "' + newend + '" WHERE id = ' + id, function(err, result) {
 								conn.end();
+								msg.push({
+									operation: 'update',
+									resource: 'event',
+									id: id,
+									updated: new Date()
+								})
 								callback(null);
 							})
 						} else {
 							conn.end();
+							msg.push({
+								operation: 'delete',
+								resource: 'event',
+								id: id,
+								updated: new Date()
+							})
 							callback(null);
 						}
 					})
@@ -140,7 +152,7 @@ exports.deleteEvent = function(id, data, callback) {
 	} else {
 		//delete a non-repeating event that has the id or delete a repeating event completely
 		pool.getConnection(function(err, conn) {
-			conn.query('DELETE FROM ca_event WHERE id = "' + req.params.id + '"', function(err, result) {
+			conn.query('DELETE FROM ca_event WHERE id = ' + id, function(err, result) {
 				if (err) throw err;
 
 				msg.push({
@@ -212,6 +224,9 @@ exports.createRepeatingEvent = function(id, data, callback) {
 };
 
 exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, newpeople, rrepeat, rindex, cid, msg, callback) {
+	if (typeof newpeople === 'string') {
+		newpeople = [ newpeople ];
+	}
 	//compare old relation with new relationship
 			if(oldrelation_id) {
 				//old relationship exists

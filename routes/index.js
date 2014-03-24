@@ -18,8 +18,8 @@ exports.login = function(req, res){
 			conn.query("SELECT * FROM ca_user WHERE username = " + conn.escape(req.body.username) + " AND password = " + conn.escape(req.body.password), function(err, results){
 				if(err) throw err;
 				if(results[0]) {
-					req.session.username = results[0].username;
 					req.session.uid = results[0].id;
+					req.session.username = results[0].username;
 				}
 				conn.end();
 				res.redirect('/');

@@ -166,20 +166,6 @@ io.sockets.on('connection', function(socket){
 	socket.on('connect', function(data){
 		connect(socket, data);
 	});
-
-	// when a client sends a message, he emits
-	// this event, then the server forwards the
-	// message to other clients in the same workspace
-	socket.on('DBAnnotationUpdated', function(data){
-		dbannotationupdated(socket, data);
-	});
-	
-	// when a client deletes a message, he emits
-	// this event, then the server forwards the
-	// message to other clients in the same workspace
-	socket.on('DBAnnotationDeleted', function(data){
-		dbannotationdeleted(socket, data);
-	});
 	
 	socket.on('reloadlocation', function(data){
 		reloadlocation(socket, data);
@@ -187,6 +173,18 @@ io.sockets.on('connection', function(socket){
 	
 	socket.on('reloadrelation', function(data){
 		reloadrelation(socket, data);
+	});
+	
+	socket.on('createannotation', function(data){
+		createannotation(socket, data);
+	});
+	
+	socket.on('updateannotation', function(data){
+		updateannotation(socket, data);
+	});
+	
+	socket.on('deleteannotation', function(data){
+		deleteannotation(socket, data);
 	});
 	
 	socket.on('createevent', function(data){
@@ -271,32 +269,46 @@ function disconnect(socket){
 	delete chatClients[socket.id];
 };
 	
-// receive a new/revised annotation from a client and
-// send it to the relevant workspace
-function dbannotationupdated(socket, data){
-	 // by using 'socket.broadcast' we can send/emit
-	// a message/event to all other clients except
-	// the sender himself
-	console.log("dbannotationupdated got data "+data);
-	socket.broadcast.to(data.room).emit('DBAnnotationUpdated', data);
+
+function createannotation(socket, data) {
+	pool.getConnection(function(err, conn) {
+		conn.query('SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation, ca_annotation.color AS color, ca_annotation.creator AS creator FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_annotation.id = ' + data.id, function(err, result) {
+			if(err) throw err;
+			
+			data.annotation = result[0];
+			conn.end();
+			io.sockets.in(data.room).emit('createannotation', data);
+		})
+	})
 };
 
-function dbannotationdeleted(socket, data){
-	 // by using 'socket.broadcast' we can send/emit
-	// a message/event to all other clients except
-	// the sender himself
-	console.log("dbannotationdeleted got data "+data);
-	socket.broadcast.to(data.room).emit('DBAnnotationDeleted', data);
+function updateannotation(socket, data) {
+	pool.getConnection(function(err, conn) {
+		conn.query('SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation, ca_annotation.color AS color, ca_annotation.creator AS creator FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_annotation.id = ' + data.id, function(err, result) {
+			if(err) throw err;
+			
+			data.annotation = result[0];
+			conn.end();
+			io.sockets.in(data.room).emit('createannotation', data);
+		})
+	})
+};
+
+function deleteannotation(socket, data) {
+	var temp = data.id.split('_');
+	data.id = temp[0];
+	data.ca_doc_uuid = temp[1];
+	io.sockets.in(data.room).emit('deleteannotation', data);
 };
 
 function createevent(socket, data) {
-	console.log('creating event');
-	console.log(data);
 		pool.getConnection(function(err, conn) {
-			conn.query("SELECT ca_event.id AS id, ca_event.title AS title, ca_event.start AS start, ca_event.end AS end, ca_event.rrepeat AS rrepeat, ca_event.rinterval AS rinterval, ca_event.end_after AS end_after, ca_event.rindex AS rindex, ca_event.ca_location_location AS ca_location_location, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_event LEFT JOIN ca_relation ON ca_event.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_event.id = " + data.id + " GROUP BY ca_event.id, ca_event.rindex", function(err, results) {
+			conn.query("SELECT ca_event.id AS id, ca_event.title AS title, ca_event.start AS start, ca_event.end AS end, ca_event.rrepeat AS rrepeat, ca_event.rinterval AS rinterval, ca_event.end_after AS end_after, ca_event.rindex AS rindex, ca_event.ca_location_location AS ca_location_location, ca_event.creator AS creator, ca_event.editors AS editors, ca_event.color as color, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_event LEFT JOIN ca_relation ON ca_event.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_event.id = " + data.id + " GROUP BY ca_event.id, ca_event.rindex", function(err, results) {
 				console.log(results);
 				data.eventlist = results;
 				conn.end();
+				console.log('emiting io.sockets.in'+data.room+'createevent');
+				console.log(getRooms());
 				io.sockets.in(data.room).emit('createevent', data);
 			});
 		})
@@ -304,7 +316,7 @@ function createevent(socket, data) {
 
 function updateevent(socket, data) {
 	pool.getConnection(function(err, conn) {
-		conn.query("SELECT ca_event.id AS id, ca_event.title AS title, ca_event.start AS start, ca_event.end AS end, ca_event.rrepeat AS rrepeat, ca_event.rinterval AS rinterval, ca_event.end_after AS end_after, ca_event.rindex AS rindex, ca_event.ca_location_location AS ca_location_location, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_event LEFT JOIN ca_relation ON ca_event.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_event.id = " + data.id + " GROUP BY ca_event.id, ca_event.rindex", function(err, results) {
+		conn.query("SELECT ca_event.id AS id, ca_event.title AS title, ca_event.start AS start, ca_event.end AS end, ca_event.rrepeat AS rrepeat, ca_event.rinterval AS rinterval, ca_event.end_after AS end_after, ca_event.rindex AS rindex, ca_event.ca_location_location AS ca_location_location, ca_event.creator AS creator, ca_event.editors AS editors, ca_event.color as color, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_event LEFT JOIN ca_relation ON ca_event.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_event.id = " + data.id + " GROUP BY ca_event.id, ca_event.rindex", function(err, results) {
 			data.eventlist = results;
 			conn.end();
 			io.sockets.in(data.room).emit('updateevent', data);
@@ -317,8 +329,19 @@ function deleteevent(socket, data) {
 };
 
 function createlocation(socket, data) {
-	console.log('im creating location');
-	io.sockets.in(data.room).emit('createlocation', data);
+	pool.getConnection(function(err, conn){
+		if(err){
+			conn.end();
+		}else{
+			conn.query("SELECT location, creator, color FROM ca_location WHERE id = '" + data.id + "'", function(err, results){
+				if(err) throw err;
+				
+				data.locationlist = results;
+				conn.end();
+				io.sockets.in(data.room).emit('createlocation', data);
+			})
+		}
+	})
 };
 
 function createrelation(socket, data) {
@@ -326,7 +349,7 @@ function createrelation(socket, data) {
 		if(err){
 			conn.end();
 		}else{
-			conn.query("SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id WHERE ca_relation.id = " + data.id, function(err, results){
+			conn.query("SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id, ca_relation.color AS color, ca_relation.creator FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id WHERE ca_relation.id = " + data.id, function(err, results){
 				if(err) throw err;
 			
 				data.relationlist = results;

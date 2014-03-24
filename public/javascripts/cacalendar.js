@@ -23,7 +23,7 @@ caCalendar.prototype.reload = function(data) {
 	this.el.fullCalendar(this.options);
 };
 
-caCalendar.prototype.metadata = ['title', 'start', 'end', 'ca_location_location', 'people', 'relation'];
+caCalendar.prototype.metadata = ['title', 'start', 'end', 'ca_location_location', 'people', 'relation', 'creator', 'editors'];
 
 caCalendar.prototype.rinterval = ['day(s)', 'week(s)', 'month(s)'];
 
@@ -42,7 +42,7 @@ caCalendar.prototype.setupDropDownList = function() {
 	this.dropdowncontrol.selectlocation = $("#selectlocation").selectize({
 		hideSelected: true,
 		options: calocation.location_options,
-        addPrecedence: true,
+		addPrecedence: true,
 		create: function(input, callback) {
 			_this.searchLocations(input, 'eventeditor', function(loc_selected) {
 				if (loc_selected) {
@@ -52,13 +52,14 @@ caCalendar.prototype.setupDropDownList = function() {
 						text: loc_selected
 					});
 					for (var i in window.dropdownlists.locationlists) {
-						if(window.dropdownlists.locationlists[i][0].selectize != this) {
-						window.dropdownlists.locationlists[i][0].selectize.addOption({
-							value: loc_selected,
-							text: loc_selected
-						});
-						window.dropdownlists.locationlists[i][0].selectize.refreshOptions();
-					}}
+						if (window.dropdownlists.locationlists[i][0].selectize != this) {
+							window.dropdownlists.locationlists[i][0].selectize.addOption({
+								value: loc_selected,
+								text: loc_selected
+							});
+							window.dropdownlists.locationlists[i][0].selectize.refreshOptions();
+						}
+					}
 					if (window.camap) {
 						window.camap.newMarker({
 							lat: addrs[loc_selected].lat(),
@@ -66,14 +67,17 @@ caCalendar.prototype.setupDropDownList = function() {
 							location: loc_selected
 						})
 					}
-					callback({value: loc_selected, text: loc_selected});
+					callback({
+						value: loc_selected,
+						text: loc_selected
+					});
 				} else {
 					callback();
 				}
 			})
 		}
 	});
-	this.dropdowncontrol.selectlocation[0].selectize.on('option_add', function(){
+	this.dropdowncontrol.selectlocation[0].selectize.on('option_add', function() {
 		this.refreshOptions();
 	})
 	window.dropdownlists.locationlists.push(this.dropdowncontrol.selectlocation);
@@ -90,12 +94,13 @@ caCalendar.prototype.setupDropDownList = function() {
 			});
 			for (var i in window.dropdownlists.peoplelists) {
 				if (window.dropdownlists.peoplelists[i][0].selectize != this) {
-				window.dropdownlists.peoplelists[i][0].selectize.addOption({
-					value: input,
-					text: input
-				});
-				window.dropdownlists.peoplelists[i][0].selectize.refreshOptions();
-			}}
+					window.dropdownlists.peoplelists[i][0].selectize.addOption({
+						value: input,
+						text: input
+					});
+					window.dropdownlists.peoplelists[i][0].selectize.refreshOptions();
+				}
+			}
 			return {
 				value: input,
 				text: input
@@ -114,20 +119,21 @@ caCalendar.prototype.setupDropDownList = function() {
 				text: input
 			});
 			for (var i in window.dropdownlists.relationlists) {
-				if(window.dropdownlists.relationlists[i][0].selectize != this) {
-				window.dropdownlists.relationlists[i][0].selectize.addOption({
-					value: input,
-					text: input
-				});
-				window.dropdownlists.relationlists[i][0].selectize.refreshOptions();
-			}}
+				if (window.dropdownlists.relationlists[i][0].selectize != this) {
+					window.dropdownlists.relationlists[i][0].selectize.addOption({
+						value: input,
+						text: input
+					});
+					window.dropdownlists.relationlists[i][0].selectize.refreshOptions();
+				}
+			}
 			return {
 				value: input,
 				text: input
 			}
 		}
 	});
-	this.dropdowncontrol.selectrelation[0].selectize.on('option_add', function(){
+	this.dropdowncontrol.selectrelation[0].selectize.on('option_add', function() {
 		this.refreshOptions();
 	})
 	window.dropdownlists.relationlists.push(this.dropdowncontrol.selectrelation);
@@ -155,6 +161,7 @@ caCalendar.prototype.setupEventEditor = function() {
 			$("#errmsg").html(err).show();
 		} else {
 			var params = eventform.serialize();
+			params += "&color=" + window.usercolor;
 			if (_this.calEvent) {
 				//existing event
 				if (_this.calEvent.rrepeat) {
@@ -209,7 +216,7 @@ caCalendar.prototype.setupEventEditor = function() {
 					})
 				} else {
 					div.addClass('eventeditor-hidden');
-                    $("#errmsg").html("").hide();
+					$("#errmsg").html("").hide();
 					eventform[0].reset();
 					win.removeClass('editing');
 					ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
@@ -220,101 +227,102 @@ caCalendar.prototype.setupEventEditor = function() {
 						});
 					});
 				}
-		} else {
-			//new event
-			div.addClass('eventeditor-hidden');
-            $("#errmsg").html("").hide();
-			eventform[0].reset();
-			win.removeClass('editing');
-			ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
+			} else {
+				//new event
+				div.addClass('eventeditor-hidden');
+				$("#errmsg").html("").hide();
+				eventform[0].reset();
+				win.removeClass('editing');
+				ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
+			}
 		}
-	}
 	});
-//
-$("#calcncl").click(function() {
-	div.addClass('eventeditor-hidden');
-    $("#errmsg").html("").hide();
-	eventform[0].reset();
-	win.removeClass('editing');
-	_this.calEvent = null;
-	$('#event_status').load('/desync', function() {
-		$('#eventform :input').prop('disabled', false);
-	});
-});
-//
-$("#caldel").click(function() {
-    $("#errmsg").html("").hide();
-	if (_this.calEvent) {
-		//existing event
-		if (_this.calEvent.rrepeat) {
-			div.append("<div id='repeating_alert'><b>You're deleting a repeating event.</b><br>Do you want to delete only the selected occurrence, or this and all future occurrences of this event?</div>");
-
-			$("#repeating_alert").dialog({
-				width: 'auto',
-				modal: true,
-				buttons: {
-					'Cancel': function() {
-						$(this).dialog("close");
-						div.addClass('eventeditor-hidden');
-						eventform[0].reset();
-						win.removeClass('editing');
-						_this.calEvent = null;
-						$('#event_status').load('/desync', function() {
-							$('#eventform :input').prop('disabled', false);
-						});
-					},
-					'Delete All Future Events': function() {
-						$(this).dialog("close");
-						div.addClass('eventeditor-hidden');
-						eventform[0].reset();
-						win.removeClass('editing');
-						var params = "idx=x" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
-						ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
-							_this.calEvent = null;
-							$('#event_status').load('/desync', function() {
-								$('#eventform :input').prop('disabled', false);
-								_this.updateEvent(data);
-							});
-						});
-					},
-					'Delete Only This Event': function() {
-						$(this).dialog("close");
-						div.addClass('eventeditor-hidden');
-						eventform[0].reset();
-						win.removeClass('editing');
-						var params = "idx=" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
-						ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
-							_this.calEvent = null;
-							$('#event_status').load('/desync', function() {
-								$('#eventform :input').prop('disabled', false);
-								_this.updateEvent(data);
-							});
-						});
-					}
-				},
-				close: function(ev, ui) {
-					$(this).dialog("destroy").remove();
-				}
-			})
-		} else {
-			div.addClass('eventeditor-hidden');
-			eventform[0].reset();
-			win.removeClass('editing');
-			ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
-				_this.calEvent = null;
-				$('#event_status').load('/desync', function() {
-					$('#eventform :input').prop('disabled', false);
-					_this.updateEvent(data);
-				});
-			});
-		}
-	} else {
-		//new event, do nothing
+	//
+	$("#calcncl").click(function() {
 		div.addClass('eventeditor-hidden');
+		$("#errmsg").html("").hide();
 		eventform[0].reset();
 		win.removeClass('editing');
-	}
-});
+		_this.calEvent = null;
+		$('#event_status').load('/desync', function() {
+			$('#eventform :input').prop('disabled', false);
+		});
+	});
+	//
+	$("#caldel").click(function() {
+		$("#errmsg").html("").hide();
+		if (_this.calEvent) {
+			//existing event
+			if (_this.calEvent.rrepeat) {
+				div.append("<div id='repeating_alert'><b>You're deleting a repeating event.</b><br>Do you want to delete only the selected occurrence, or this and all future occurrences of this event?</div>");
+
+				$("#repeating_alert").dialog({
+					width: 'auto',
+					modal: true,
+					buttons: {
+						'Cancel': function() {
+							$(this).dialog("close");
+							div.addClass('eventeditor-hidden');
+							eventform[0].reset();
+							win.removeClass('editing');
+							_this.calEvent = null;
+							$('#event_status').load('/desync', function() {
+								$('#eventform :input').prop('disabled', false);
+							});
+						},
+						'Delete All Future Events': function() {
+							$(this).dialog("close");
+							div.addClass('eventeditor-hidden');
+							eventform[0].reset();
+							win.removeClass('editing');
+							var params = "idx=x" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
+							ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
+								_this.calEvent = null;
+								$('#event_status').load('/desync', function() {
+									$('#eventform :input').prop('disabled', false);
+									_this.updateEvent(data);
+								});
+							});
+						},
+						'Delete Only This Event': function() {
+							$(this).dialog("close");
+							div.addClass('eventeditor-hidden');
+							eventform[0].reset();
+							win.removeClass('editing');
+							var params = "idx=" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
+							ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
+								_this.calEvent = null;
+								$('#event_status').load('/desync', function() {
+									$('#eventform :input').prop('disabled', false);
+									_this.updateEvent(data);
+								});
+							});
+						}
+					},
+					close: function(ev, ui) {
+						$(this).dialog("destroy").remove();
+					}
+				})
+			} else {
+				div.addClass('eventeditor-hidden');
+				eventform[0].reset();
+				win.removeClass('editing');
+				var params = "rindex=" + _this.calEvent.rindex;
+				ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
+					_this.calEvent = null;
+					$('#event_status').load('/desync', function() {
+						$('#eventform :input').prop('disabled', false);
+						_this.updateEvent(data);
+					});
+				});
+			}
+		} else {
+			//new event, do nothing
+			div.addClass('eventeditor-hidden');
+			eventform[0].reset();
+			win.removeClass('editing');
+		}
+	});
 
 /*
 win.click(function(e) {
@@ -332,7 +340,7 @@ $(document).click(function() {
 	});
 })*/
 
-this.eventEditor = div;
+	this.eventEditor = div;
 };
 
 caCalendar.prototype.showEventEditor = function() {
@@ -452,32 +460,11 @@ caCalendar.prototype.showEventEditor = function() {
 };
 
 caCalendar.prototype.updateEvent = function(data) {
-	var _this = this;
-	var results = data.eventlist;
-
-	var e = this.el.fullCalendar('clientEvents', data.id);
-
-	if (e.length != results.length) {
-		_this.el.fullCalendar('removeEvents', results[0].id);
-		for (var i = 0; i < results.length; i++) {
-			_this.el.fullCalendar('renderEvent', results[i]);
-		}
-	} else {
-		for (var i = 0; i < results.length; i++) {
-			$.extend(e[i], results[i]);
-			_this.el.fullCalendar('updateEvent', e[i]);
-		}
-	}
-
-/*	var _data = data;
-	_data.el = $(this.el).attr('id');
-	_data.room = window.ct;
-	socket.emit('DBEventUpdated', _data);*/
-
-	for (var i in data.msg) {
-		socket.emit(data.msg[i].operation + data.msg[i].resource, {
-			room: window.ct,
-			id: data.msg[i].id
+	for (var i in data) {
+		socket.emit(data[i].operation + data[i].resource, {
+			room: window.ca_case_id,
+			id: data[i].id,
+			updated: data[i].updated
 		})
 	}
 };
@@ -549,9 +536,9 @@ caCalendar.prototype.validateForm = function(el) {
 	var start = fm['start'].value;
 	var end = fm['end'].value || start;
 
-    if (fm["title"].value ==="") {
-        err += 'Event title cannot be empty!<br>'
-    }
+	if (fm["title"].value === "") {
+		err += 'Event title cannot be empty!<br>'
+	}
 
 	if (start) {
 		var _start = $.fullCalendar.parseDate(start);
@@ -653,9 +640,9 @@ caCalendar.prototype.searchLocations = function(loc, el, callback) {
 							var loc_selected = $('input:radio[name=loc]:checked').val();
 							$(this).dialog("close");
 							var params = "location=" + encodeURIComponent(loc_selected) + "&lat=" + addrs[loc_selected].lat() + "&lng=" + addrs[loc_selected].lng();
-							ajax_request('/maps/' + window.ca_case_id, 'POST', params, function(){
+							ajax_request('/maps/' + window.ca_case_id, 'POST', params, function() {
 								socket.emit('createlocation', {
-									room: window.ct,
+									room: window.ca_case_id,
 									id: loc_selected
 								});
 								callback(loc_selected);

@@ -205,10 +205,6 @@ exports.update = function(req, res) {
 					}
 					qs.editors = editors;
 					
-					var color = (parseInt(results[0].color.substring(1), 16) + parseInt(req.body.color.substring(1), 16))/2;
-					color = "#" + color.toString(16);
-					qs.color = color;
-					
 					if (results[0].rrepeat) {
 						//it's a repeating event
 						if (req.body.rrepeat) {

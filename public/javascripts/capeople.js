@@ -2,27 +2,21 @@ function caPeople() {
 	var _this = this;
 	this.people_list = [];
 	this.relation_list = [];
-<<<<<<< HEAD
-
-=======
->>>>>>> 750886e34f5f32036587d93a9fddba2bdd9e02de
 
     var t = window.ca_case_id;
 
 	this.people_options = [];
 	this.relation_options = [];
 
-<<<<<<< HEAD
 
     var t = window.ca_case_id;
 	this.people_options = [];
 	this.relation_options = [];
 
-=======
     var t = window.ca_case_id;
 	this.people_options = [];
 	this.relation_options = [];
->>>>>>> 750886e34f5f32036587d93a9fddba2bdd9e02de
+
 	$.get('/people/'+window.ca_case_id, function(data){
 		for(var i=0; i<data.length; i++){
 			_this.people_list.push(data[i].name);

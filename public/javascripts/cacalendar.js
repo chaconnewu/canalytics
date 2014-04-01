@@ -20,7 +20,8 @@ function caCalendar(el, options) {
 
 caCalendar.prototype.reload = function(data) {
 	this.options.events = data;
-	this.el.fullCalendar(this.options);
+	this.el.fullCalendar('removeEvents');
+	this.el.fullCalendar('addEventSource', data);
 };
 
 caCalendar.prototype.metadata = ['title', 'start', 'end', 'ca_location_location', 'people', 'relation', 'creator', 'editors'];

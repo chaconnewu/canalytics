@@ -333,7 +333,8 @@ function createlocation(socket, data) {
 		if(err){
 			conn.end();
 		}else{
-			conn.query("SELECT location, creator, color FROM ca_location WHERE id = '" + data.id + "'", function(err, results){
+			console.log(data);
+			conn.query("SELECT location, creator, color FROM ca_location WHERE location = '" + data.id + "'", function(err, results){
 				if(err) throw err;
 				
 				data.locationlist = results;

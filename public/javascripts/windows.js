@@ -295,14 +295,16 @@ caWindows.createFilter = function(windowid) {
 			data.time_to = $('#time_to').val();
 		}
 
+		var module = windowid.split('_')[0];
+		console.log(data);
+		
 		$.get('/filter', data, function(results){
 			data = {};
 			console.log(results);
-			var module = $(_this).parent().attr('id');
 			if(results){
-				if(module.indexOf('map') > -1){
+				if(module == 'map'){
 					window.camap.reload(results);
-				}else if(module.indexOf('cal') > -1){
+				}else if(module == 'cal'){
 					var eid = [];
 					for(var i in results){
 						if(results[i].eid) eid.push(results[i].eid);
@@ -310,7 +312,7 @@ caWindows.createFilter = function(windowid) {
 					$.get('/calendars/search/'+window.ca_case_id, {eid: eid}, function(data){
 						window.cacalendar.reload(data);
 					})
-				}else if(module.indexOf('graph') > -1){
+				}else if(module == 'graph'){
 					results.relationlist = results;
 					window.cagraph.reload(results);
 				}

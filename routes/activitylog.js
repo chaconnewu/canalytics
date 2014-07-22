@@ -19,13 +19,12 @@ exports.logs = function(log) {
 
     var user = log.user;
     var operation = log.operation;
-    var target = log.target;
-    var activity = log.activity;
+    var artifact = log.artifact;
     var data = log.data;
     var time = new Date().toISOString();
 
     if (!user) return;
-    str = time + '\t' + user + '\t' + operation + '\t' + target + '\t' + activity + '\t' + data + '\n';
+    // str = time + '\t' + user + '\t' + operation + '\t' + target + '\t' + activity + '\t' + data + '\n';
 
     // write to file
     // fs.appendFile('activitylog.txt', str, function(err) {
@@ -38,16 +37,17 @@ exports.logs = function(log) {
        conn.query('SELECT id from ca_user WHERE username=' + conn.escape(user), function(err, results) {
            if (err) {
                console.log("Activity log failed, no such user exists: ", + err);
-               conn.end()
+               conn.end();
                return;
            }
            user = results[0].id;
 
            conn.query('INSERT INTO ca_activitylog SET ?', {
                    user_id: user,
-                   event: event,
-                   element: element,
-                   activity: activity
+                   operation: operation,
+                   artifact: artifact,
+                   data: data,
+                   time: time
                }, function(err, results) {
                    if (err) {
                        console.log("Activity log failed: " + err);

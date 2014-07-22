@@ -5,14 +5,10 @@
 function calog(oper) {
     var log = {
         operation: oper.operation,
-        target: oper.target,
-        activity: oper.activity,
+        artifact: oper.artifact,
         data: oper.data
-    }
+    };
     $.post('/activitylog', log, function(error, result) {
-        if (error) {
-            console.warn('Error logging activity: ' + error);
-        }
 
     })
 }

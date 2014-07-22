@@ -27,7 +27,7 @@ $(document).ready(function() {
 	$("body").height($(window).height());
 	$("body").width($(window).width());
 	panel_width = 165;
-	
+
 	$(function() {
 	  $( "#accordion" ).accordion({
 		active:false,
@@ -38,13 +38,13 @@ $(document).ready(function() {
 
 	$(".leftslidingmenu").width(panel_width);
 	//$(".rightslidingmenu").width(panel_width);
-	
+
 	var container = $("#container");
 	container.width($(window).width() - panel_width - $(".lefttrigger").width() - 25);
 	//container.width($(window).width() - panel_width*2 - $(".lefttrigger").width()*2 - 25);
 	container.height($(window).height());
 	container.css("left", panel_width+20);
-	
+
 	//initialize windows to hold modules, i.e. docs, map, calendar, relationship graph
 	caWindows.parentdiv = $("#container");
 
@@ -54,21 +54,21 @@ $(document).ready(function() {
 	$.balloon.defaults.position = 'right';
 	$.balloon.defaults.hideDuration = 0;
 	$.balloon.defaults.minLifetime = 0;
-	
+
 	//initialize caPeople
 	capeople = new caPeople();
-	
+
 	//initialize caLocation
 	calocation = new caLocation();
-	
+
 	//initialize google map service
 	window.geocoder = new google.maps.Geocoder();
 	window.mapOptions = {
         center: new google.maps.LatLng(40.7933, -77.8603),
         zoom: 16,
         mapTypeId: google.maps.MapTypeId.ROADMAP
-      };
-	
+    };
+
 	//initialize dropdown lists
 	window.dropdownlists = {};
 	window.dropdownlists.locationlists = [];
@@ -78,22 +78,37 @@ $(document).ready(function() {
     // resize container when browser window resizes
     $(window).resize(function() {
         container.width($(window).width() - panel_width - $(".lefttrigger").width() - 25);
+		calog({
+			operation: 'resize',
+			artifact: 'window',
+			data: JSON.stringify({size_to: [$(window).width(), $(window).height()]})
+		});
     })
 	//register event triggers
 	$(".lefttrigger").click(function(){
 		$(".leftslidingmenu").slideToggleWidth();
 		$(this).toggleClass("active");
+		var status;
+
 		if($(this).hasClass("active")) {
 			container.width(container.width()+panel_width);
 			container.animate({
 				left: parseInt(container.css("left"),10)-panel_width
 			}, "slow");
+			status = 'show';
 		} else {
 			container.width(container.width()-panel_width);
 			container.animate({
 				left: parseInt(container.css("left"),10)+panel_width
 			}, "slow");
+			status = 'hide';
 		}
+
+		calog({
+			operation: 'toggle sidebar',
+			artifact: 'window',
+			data: JSON.stringify({toggle_to: status})
+		});
 		return false;
 	});
 	/*$(".righttrigger").click(function(){
@@ -106,15 +121,15 @@ $(document).ready(function() {
 		}
 		return false;
 	});*/
-	
-							
+
+
 	/*scheduler.config.xml_date = "%Y-%m-%d %H:%i";
 	scheduler.config.fist_hour = 8;
 	scheduler.config.last_hour = 17;
 	scheduler.config.start_on_monday = true;
 	scheduler.init("cascheduler", null, "month");
 	scheduler.load("/schedulers?uid="+scheduler.uid());
-	
+
 	var dp = new dataProcessor("/schedulers");
 	dp.init(scheduler);*/
 });

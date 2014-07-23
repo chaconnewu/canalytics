@@ -3,6 +3,7 @@
  * Created by dong on 3/23/14.
  */
 var fs = require('fs');
+var pool = require('../dbpool.js');
 
 
 exports.activitylog = function(req, res) {
@@ -21,7 +22,7 @@ exports.logs = function(log) {
     var operation = log.operation;
     var artifact = log.artifact;
     var data = log.data;
-    var time = new Date().toISOString();
+    var time = new Date();
 
     if (!user) return;
     // str = time + '\t' + user + '\t' + operation + '\t' + target + '\t' + activity + '\t' + data + '\n';

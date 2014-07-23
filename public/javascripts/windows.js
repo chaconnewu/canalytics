@@ -61,8 +61,9 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 				border: 0,
 				cellspacing: 0,
 				overflow: 'hidden',
-				style: "border:0;width:100%;height:100%;"
+				style: "border:0;width:100%;height:100%;",
 			}).appendTo(win);
+			win.data('artifact', 'doc');
             _this.createFilter(windowid);
 			break;
 		case 'map':
@@ -216,12 +217,19 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 	parker.click(function() {
 		box_content.slideToggle();
 		parker.toggleClass("active");
+
+		calog({ operation: 'collapse artifact', artifact: win.data('artifact') });
 		return false;
 	});
 	closer.click(function() {
+		calog({
+			operation: 'close artifact',
+			artifact: win.data('artifact'),
+		});
 		//box.css("visibility", "hidden");
 		box.remove();
 		_this.wins.splice(_this.wins.indexOf(windowid), 1);
+
 		return false;
 	});
 
@@ -230,6 +238,7 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 			return;
 		}
 		bringToTop(this);
+		calog({ operation: 'focus artifact', artifact: win.data('artifact') });
 	});
 
 	this.wins.push(windowid);
@@ -306,7 +315,7 @@ caWindows.createFilter = function(windowid) {
 
 		calog({
 			operation: 'toggle filter bar',
-			artifact: '', // TODO: get artifact by windowid 
+			artifact: $(this).parents('.cabox').find('.cawindow').data('artifact'),
 			data: JSON.stringify({ toggle_to: status })
 		});
 
@@ -331,10 +340,9 @@ caWindows.createFilter = function(windowid) {
 		}
         calog({
             operation: 'filter',
-            target: $(_this).parents('.cabox').attr('id'),
-            activity: 'filter',
+            artifact: $(_this).parents('.cabox').find('.cawindow').data('artifact'),
             data: JSON.stringify(data)
-        })
+        });
 		$.get('/filter', data, function(results){
 			data = {};
 //			console.log(results);

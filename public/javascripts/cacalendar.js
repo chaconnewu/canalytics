@@ -1,6 +1,7 @@
 function caCalendar(el, options) {
 	this.el = el;
 	this.el.addClass('cacalendar');
+	this.el.data('artifact', 'calendar');
 	this.dropdowncontrol = {};
 	this.options = $.extend(this.defaultoptions, {
 		dayClick: this.showEventEditor.bind(this),
@@ -188,6 +189,11 @@ caCalendar.prototype.setupEventEditor = function() {
 								div.addClass('eventeditor-hidden');
 								eventform[0].reset();
 								win.removeClass('editing');
+								calog({
+									operation: 'update event',
+									artifact: 'calendar',
+									data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+								});
 								ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
 									_this.calEvent = null;
 									$('#event_status').load('/desync', function() {
@@ -202,6 +208,11 @@ caCalendar.prototype.setupEventEditor = function() {
 								div.addClass('eventeditor-hidden');
 								eventform[0].reset();
 								win.removeClass('editing');
+								calog({
+									operation'update event',
+									artifact: 'calendar',
+									data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+								});
 								ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
 									_this.calEvent = null;
 									$('#event_status').load('/desync', function() {
@@ -220,6 +231,11 @@ caCalendar.prototype.setupEventEditor = function() {
 					$("#errmsg").html("").hide();
 					eventform[0].reset();
 					win.removeClass('editing');
+					calog({
+						operation'update event',
+						artifact: 'calendar',
+						data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+					});
 					ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
 						_this.calEvent = null;
 						$('#event_status').load('/desync', function() {
@@ -234,6 +250,11 @@ caCalendar.prototype.setupEventEditor = function() {
 				$("#errmsg").html("").hide();
 				eventform[0].reset();
 				win.removeClass('editing');
+				calog({
+					operation'create event',
+					artifact: 'calendar',
+					data: JSON.stringify(params))
+				});
 				ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
 			}
 		}
@@ -277,6 +298,11 @@ caCalendar.prototype.setupEventEditor = function() {
 							eventform[0].reset();
 							win.removeClass('editing');
 							var params = "idx=x" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
+							calog({
+								operation'delete event',
+								artifact: 'calendar',
+								data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+							});
 							ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
 								_this.calEvent = null;
 								$('#event_status').load('/desync', function() {
@@ -291,6 +317,11 @@ caCalendar.prototype.setupEventEditor = function() {
 							eventform[0].reset();
 							win.removeClass('editing');
 							var params = "idx=" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
+							calog({
+								operation'delete event',
+								artifact: 'calendar',
+								data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+							});
 							ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
 								_this.calEvent = null;
 								$('#event_status').load('/desync', function() {
@@ -309,6 +340,11 @@ caCalendar.prototype.setupEventEditor = function() {
 				eventform[0].reset();
 				win.removeClass('editing');
 				var params = "rindex=" + _this.calEvent.rindex;
+				calog({
+					operation'delete event',
+					artifact: 'calendar',
+					data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+				});
 				ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
 					_this.calEvent = null;
 					$('#event_status').load('/desync', function() {
@@ -431,6 +467,11 @@ caCalendar.prototype.showEventEditor = function() {
 			$('#eventform input[name=end_after]').val(end_after);
 			$("#err").html('');
 
+			calog({
+				operation: 'to edit event',
+				artifact: 'calendar',
+				data: JSON.stringify({ event_id: calEvant.id })
+			});
 			return false;
 		});
 	} else {
@@ -455,6 +496,12 @@ caCalendar.prototype.showEventEditor = function() {
 		$('#eventform input[name=start]').val(d);
 		$('#eventform input[name=end]').val(d);
 		$("#err").html('');
+
+		calog({
+			operation: 'to create event',
+			artifact: 'calendar',
+			data: JSON.stringify({ date: date, allDay: allDay })
+		});
 
 		return false;
 	}
@@ -519,6 +566,12 @@ caCalendar.prototype.showEvent = function(event, jsEvent, view) {
 		contents: html
 	});
 
+	calog({
+		operation: 'show event',
+		artifact: 'calendar',
+		data: JSON.stringify({ event_id: event.id })
+	});
+
 
 	return false;
 };
@@ -526,6 +579,11 @@ caCalendar.prototype.showEvent = function(event, jsEvent, view) {
 caCalendar.prototype.hideEvent = function(event, jsEvent, view) {
 	$(this).removeBalloon('balloon-' + event.id + '-' + event.rindex);
 
+	calog({
+		operation: 'hide event',
+		artifact: 'calendar',
+		data: JSON.stringify({ event_id: event.id })
+	});
 	return false;
 };
 
@@ -704,7 +762,7 @@ function format_date(date) {
 			delete data[attr];
 		}
 	});
-	
+
 	return data;
 };*/
 

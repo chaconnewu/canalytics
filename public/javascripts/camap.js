@@ -5,6 +5,7 @@ function caMap(el, data) {
 	this.infowindow = new google.maps.InfoWindow({
 		content: ''
 	});
+	this.el.data('artifact', 'map');
 	if (data.length > 0) this.load(data);
 };
 
@@ -29,6 +30,11 @@ caMap.prototype.newMarker = function(param) {
 		title: param.location
 	});
 	google.maps.event.addListener(marker, 'mouseover', function() {
+		calog({
+			operation: 'show location info',
+			activity: 'map',
+			data: JSON.stringify({ location: marker.getTitle() })
+		});
 		ajax_request('/maps/location/' + encodeURIComponent(marker.getTitle()), 'GET', "ca_case_id=" + ca_case_id, function(infos) {
 			if (infos.eve_loc.length > 0 || infos.ann_loc.length > 0) {
 				var contentString = '<div id="markerballoon"><p><b>' + marker.getTitle() + '</b></p>';

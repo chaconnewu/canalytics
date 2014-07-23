@@ -209,7 +209,7 @@ caCalendar.prototype.setupEventEditor = function() {
 								eventform[0].reset();
 								win.removeClass('editing');
 								calog({
-									operation'update event',
+									operation: 'update event',
 									artifact: 'calendar',
 									data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
 								});
@@ -232,7 +232,7 @@ caCalendar.prototype.setupEventEditor = function() {
 					eventform[0].reset();
 					win.removeClass('editing');
 					calog({
-						operation'update event',
+						operation: 'update event',
 						artifact: 'calendar',
 						data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
 					});
@@ -251,9 +251,9 @@ caCalendar.prototype.setupEventEditor = function() {
 				eventform[0].reset();
 				win.removeClass('editing');
 				calog({
-					operation'create event',
+					operation: 'create event',
 					artifact: 'calendar',
-					data: JSON.stringify(params))
+					data: JSON.stringify(params)
 				});
 				ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
 			}
@@ -299,7 +299,7 @@ caCalendar.prototype.setupEventEditor = function() {
 							win.removeClass('editing');
 							var params = "idx=x" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
 							calog({
-								operation'delete event',
+								operation: 'delete event',
 								artifact: 'calendar',
 								data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
 							});
@@ -318,7 +318,7 @@ caCalendar.prototype.setupEventEditor = function() {
 							win.removeClass('editing');
 							var params = "idx=" + _this.calEvent.rindex + "&rindex=" + _this.calEvent.rindex;
 							calog({
-								operation'delete event',
+								operation: 'delete event',
 								artifact: 'calendar',
 								data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
 							});
@@ -341,7 +341,7 @@ caCalendar.prototype.setupEventEditor = function() {
 				win.removeClass('editing');
 				var params = "rindex=" + _this.calEvent.rindex;
 				calog({
-					operation'delete event',
+					operation: 'delete event',
 					artifact: 'calendar',
 					data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
 				});

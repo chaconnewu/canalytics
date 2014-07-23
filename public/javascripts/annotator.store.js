@@ -74,6 +74,11 @@
     Store.prototype.annotationCreated = function(annotation) {
       var _this = this;
       annotation.color = window.top.usercolor;
+      calog({
+          operation: 'create annotation',
+          artifact: 'doc',
+          data: JSON.stringify(annotation)
+      });
       if (__indexOf.call(this.annotations, annotation) < 0) {
         this.registerAnnotation(annotation);
         annotation.ca_case_id = window.top.ca_case_id;
@@ -94,6 +99,11 @@
 
     Store.prototype.annotationUpdated = function(annotation) {
       var _this = this;
+      calog({
+          operation: 'update annotation',
+          artifact: 'doc',
+          data: JSON.stringify(annotation)
+      });
       if (__indexOf.call(this.annotations, annotation) >= 0) {
         return this._apiRequest('update', annotation, (function(data) {
           return _this.updateAnnotation(annotation, data);
@@ -103,6 +113,11 @@
 
     Store.prototype.annotationDeleted = function(annotation) {
       var _this = this;
+      calog({
+          operation: 'delete annotation',
+          artifact: 'doc',
+          data: JSON.stringify(annotation)
+      });
       if (__indexOf.call(this.annotations, annotation) >= 0) {
         return this._apiRequest('destroy', annotation, (function(data) {
           var msg, _i, _len;

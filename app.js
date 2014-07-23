@@ -11,6 +11,7 @@ var express = require('express')
 	, cal = require('./routes/cal')
 	, graph = require('./routes/graph')
 	, geo = require('./routes/geo')
+	, logger = require('./routes/activitylog')
   , http = require('http')
   , path = require('path')
 	, sharejs = require('share').server
@@ -79,6 +80,7 @@ app.get('/filter', cahandler.filter);
 app.post('/sync', index.sync);
 app.get('/desync', index.desync);
 app.get('/logout', index.logout);
+app.post('/activitylog', logger.activitylog);
 
 var server = http.createServer(app);
 
@@ -145,7 +147,7 @@ io.sockets.on('connection', function(socket){
 			hs.session.touch().save();
 		})
 	}, 60 * 1000);
-	
+
 	socket.on('error', function(err) {
 		if(err === 'handshake error') {
 			console.log('handshake error', err);
@@ -153,64 +155,64 @@ io.sockets.on('connection', function(socket){
 			console.log('io error', err);
 		}
 	});
-	
+
 	socket.on('disconnect', function() {
 		disconnect(socket);
 		console.log('A socket with sessionID ' + hs.sessionID + ' disconnected!');
 		// clear the socket interval to stop refreshing the session
 		clearInterval(intervalID);
 	});
-	
-	// after connection, the client sends us the 
+
+	// after connection, the client sends us the
 	// nickname through the connect event
 	socket.on('connect', function(data){
 		connect(socket, data);
 	});
-	
+
 	socket.on('reloadlocation', function(data){
 		reloadlocation(socket, data);
 	});
-	
+
 	socket.on('reloadrelation', function(data){
 		reloadrelation(socket, data);
 	});
-	
+
 	socket.on('createannotation', function(data){
 		createannotation(socket, data);
 	});
-	
+
 	socket.on('updateannotation', function(data){
 		updateannotation(socket, data);
 	});
-	
+
 	socket.on('deleteannotation', function(data){
 		deleteannotation(socket, data);
 	});
-	
+
 	socket.on('createevent', function(data){
 		createevent(socket, data);
 	});
-	
+
 	socket.on('updateevent', function(data){
 		updateevent(socket, data);
 	});
-	
+
 	socket.on('deleteevent', function(data){
 		deleteevent(socket, data);
 	});
-	
+
 	socket.on('createlocation', function(data){
 		createlocation(socket, data);
 	});
-	
+
 	socket.on('createrelation', function(data){
 		createrelation(socket, data);
 	});
-	
+
 	socket.on('updaterelation', function(data){
 		updaterelation(socket, data);
 	});
-	
+
 	socket.on('deleterelation', function(data){
 		deleterelation(socket, data);
 	});
@@ -221,7 +223,7 @@ io.sockets.on('connection', function(socket){
 /*	socket.on('DBEventUpdated', function(data){
 		dbeventupdated(socket, data);
 	});*/
-	
+
 	// client subscribtion to a workspace
 	socket.on('subscribe', function(data){
 		subscribe(socket, data);
@@ -256,25 +258,25 @@ function connect(socket, data){
 function disconnect(socket){
 	// get a list of rooms for the client
 	var rooms = io.sockets.manager.roomClients[socket.id];
-		
+
 	// unsubscribe from the rooms
 	for(var room in rooms){
 		if(room && rooms[room]){
 			unsubscribe(socket, { room: room.replace('/','') });
 		}
 	}
-		
+
 	// client was unsubscribed from the rooms,
 	// now we can delete him from the hash object
 	delete chatClients[socket.id];
 };
-	
+
 
 function createannotation(socket, data) {
 	pool.getConnection(function(err, conn) {
 		conn.query('SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation, ca_annotation.color AS color, ca_annotation.creator AS creator FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_annotation.id = ' + data.id, function(err, result) {
 			if(err) throw err;
-			
+
 			data.annotation = result[0];
 			conn.end();
 			io.sockets.in(data.room).emit('createannotation', data);
@@ -286,7 +288,7 @@ function updateannotation(socket, data) {
 	pool.getConnection(function(err, conn) {
 		conn.query('SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation, ca_annotation.color AS color, ca_annotation.creator AS creator FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_annotation.id = ' + data.id, function(err, result) {
 			if(err) throw err;
-			
+
 			data.annotation = result[0];
 			conn.end();
 			io.sockets.in(data.room).emit('createannotation', data);
@@ -336,7 +338,7 @@ function createlocation(socket, data) {
 			console.log(data);
 			conn.query("SELECT location, creator, color FROM ca_location WHERE location = '" + data.id + "'", function(err, results){
 				if(err) throw err;
-				
+
 				data.locationlist = results;
 				conn.end();
 				io.sockets.in(data.room).emit('createlocation', data);
@@ -352,7 +354,7 @@ function createrelation(socket, data) {
 		}else{
 			conn.query("SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id, ca_relation.color AS color, ca_relation.creator FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id WHERE ca_relation.id = " + data.id, function(err, results){
 				if(err) throw err;
-			
+
 				data.relationlist = results;
 				conn.end();
 				io.sockets.in(data.room).emit('createrelation', data);
@@ -368,18 +370,18 @@ function reloadrelation(socket, data) {
 		}else{
 			conn.query('SELECT DISTINCT ca_person.name AS name FROM ca_person JOIN ca_relation ON ca_person.ca_relation_id = ca_relation.id WHERE ca_relation.ca_case_id = ' + data.id, function(err, results){
 				if(err) throw err;
-			
+
 				data.peoplelist = results;
 				conn.query('SELECT DISTINCT relation FROM ca_relation WHERE ca_case_id = ', function(err, results){
 					if(err) throw err;
-					
+
 					data.relationlist = results;
-					
+
 					conn.query("(SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id, ca_event.start AS start, ca_event.end AS end, ca_event.title AS text, ca_event.ca_location_location AS ca_location_location FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id JOIN ca_event ON ca_event.ca_relation_id = ca_relation.id WHERE ca_relation.ca_case_id = " + req.params.id + ") UNION (SELECT ca_person.name AS name, ca_relation.relation AS relation, ca_relation.id AS id, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.text AS text, ca_annotation.ca_location_location AS ca_location_location FROM ca_person JOIN ca_relation ON ca_relation.id = ca_person.ca_relation_id JOIN ca_annotation ON ca_annotation.ca_relation_id = ca_relation.id WHERE ca_relation.ca_case_id = " + req.params.id + ")", function(err, results){
 						if(err) throw err;
-						
+
 						data.graphlist = results;
-						
+
 						conn.end();
 						io.sockets.in(data.room).emit('reloadrelation', data);
 					})
@@ -396,7 +398,7 @@ function reloadlocation(socket, data) {
 		}else{
 			conn.query('SELECT * FROM ca_location WHERE ca_location.ca_case_id = ' + data.id, function(err, results){
 				if(err) throw err;
-			
+
 				data.locationlist = results;
 				conn.end();
 				io.sockets.in(data.room).emit('reloadlocation', data);
@@ -412,7 +414,7 @@ function updaterelation(socket, data) {
 		}else{
 			conn.query('SELECT ca_relation.id AS id, ca_relation.relation AS relation, ca_person.name AS name FROM ca_relation JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_relation.id = ' + data.id, function(err, results){
 				if(err) throw err;
-			
+
 				data.relationlist = results;
 				conn.end();
 				io.sockets.in(data.room).emit('updaterelation', data);
@@ -443,20 +445,20 @@ function subscribe(socket, data){
 	//if(rooms.indexOf('/' + data.room) < 0){
 		//socket.broadcast.emit('addroom', { room: data.room });
 	//}
-		
+
 	// subscribe the client to the room
 	socket.join(data.room);
-		
+
 	// update all other clients about the online
 	// presence
 	updatePresence(data.room, socket, 'online');
-		
+
 	// send to the client a list of all subscribed clients
 	// in this room
 	socket.emit('roomclients', { room: data.room, clients:
 		getClientsInRoom(socket.id, data.room) });
 };
-	
+
 // unsubscribe a client from a workspace, this can be
 // occured when a client disconnected from the server
 // or he subscribed to another workspace
@@ -464,10 +466,10 @@ function unsubscribe(socket, data){
 	// update all other clients about the offline
 	// presence
 	updatePresence(data.room, socket, 'offline');
-	
+
 	// remove the client from socket.io room
 	socket.leave(data.room);
-		
+
 	// if this client was the only one in that room
 	// we are updating all clients about that the
 	// room is destroyed
@@ -477,23 +479,23 @@ function unsubscribe(socket, data){
 		io.sockets.emit('removeroom', { room: data.room });
 	}
 };
-	
+
 // 'io.sockets.manager.rooms' is an object that holds
 // the active room names as a key, returning array of
 // room names
 function getRooms(){
 	return Object.keys(io.sockets.manager.rooms);
 };
-	
+
 // get array of clients in a room
 function getClientsInRoom(socketId, room){
 	// get array of socket ids in this room
 	var socketIds = io.sockets.manager.rooms['/' + room];
 	var clients = [];
-		
+
 	if(socketIds && socketIds.length >0 ){
 		socketsCount = socketIds.length;
-			
+
 		// push every client to the result array
 		for(var i=0, len=socketIds.length; i<len; i++){
 			// check if the socket is not the requesting
@@ -505,7 +507,7 @@ function getClientsInRoom(socketId, room){
 	}
 	return clients;
 };
-	
+
 // get the amount of clients in room
 function countClientsInRoom(room){
 	// 'io.sockets.manager.rooms' is an object that holds
@@ -516,25 +518,25 @@ function countClientsInRoom(room){
 	}
 	return 0;
 };
-	
+
 // updating all other clients when a client goes
 // online or offline.
 function updatePresence(room, socket, state){
 	// socket.io may add a trailing '/' to the
 	// room name so we are clearing it
 	room = room.replace('/','');
-		
+
 	// by using 'socket.broadcast' we can send/emit
 	// a message/event to all other clients except
 	// the sender himself
 	socket.broadcast.to(room).emit('presence', {client:
 		chatClients[socket.id], state: state, room: room });
 };
-	
+
 // unique id generator
 function generateId(){
 	var S4 = function () {
-	  return (((1 + Math.random()) * 0x10000) | 
+	  return (((1 + Math.random()) * 0x10000) |
 	                                     0).toString(16).substring(1);
 	 };
 		 return (S4() + S4() + "-" + S4() + "-" + S4() + "-" +

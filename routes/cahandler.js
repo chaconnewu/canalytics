@@ -13,6 +13,8 @@ exports.mycases = function(req, res) {
 					caselist = results;
 				}
 				conn.end();
+				console.log(req.session.uid);
+				console.log('hello~~~~~~~~~~~~' + caselist);
 				res.render('mycases', {
 					title: "Cases Management Page",
 					caselist: caselist
@@ -58,9 +60,9 @@ exports.mycase = function(req, res) {
 
 							conn.query("SELECT color FROM ca_usercase WHERE ca_user_id = " + req.session.uid + " AND ca_case_id = " + req.query['ca_case_id'], function(err, result) {
 								if(err) throw err;
-								
+
 								var color = result[0].color;
-								
+
 								conn.end();
 
 	              if(userblocklist[req.session.uid] && userblocklist[req.session.uid]!='') {

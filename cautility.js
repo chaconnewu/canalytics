@@ -5,7 +5,8 @@ exports.createRelation = function(people, relation, cid, callback) {
 			pool.getConnection(function(err, conn) {
 				conn.query('INSERT INTO ca_relation SET ?', {
 					relation: relation,
-					ca_case_id: cid
+					ca_case_id: cid,
+					updated: new Date()
 				}, function(err, result) {
 					if (err) {
                         console.log('Create people relation failed: ' + err);
@@ -14,7 +15,7 @@ exports.createRelation = function(people, relation, cid, callback) {
 
 					var rid = result.insertId;
 					var values = '';
-					
+
 					if (typeof people === 'string') {
 						people = [ people ];
 					}
@@ -28,7 +29,7 @@ exports.createRelation = function(people, relation, cid, callback) {
 					conn.query('INSERT INTO ca_person (name, ca_relation_id) VALUES ' + values, function(err, result) {
 						if (err) throw err;
 
-						
+
 						conn.end();
 						callback(rid);
 					})
@@ -42,7 +43,7 @@ exports.deleteRelation = function(rid, callback) {
 		conn.query('DELETE FROM ca_relation WHERE id = ' + rid, function(err, result) {
 			if (err) throw err;
 
-			
+
 			conn.end();
 			callback(null);
 		})
@@ -52,7 +53,7 @@ exports.deleteRelation = function(rid, callback) {
 exports.createEvent = function(data, callback) {
 	var qs = {};
 	var cols = ['title', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'rindex', 'ca_case_id', 'ca_location_location', 'ca_annotation_id', 'ca_relation_id', 'creator', 'editors', 'color'];
-	
+
 	Object.keys(data).forEach(function(key) {
 		if (cols.indexOf(key) > -1) {
 			if (data[key] != '') {
@@ -60,11 +61,11 @@ exports.createEvent = function(data, callback) {
 			}
 		}
 	});
-	
+
 	pool.getConnection(function(err, conn) {
 		conn.query('INSERT INTO ca_event SET ?', qs, function(err, result) {
 			if (err) throw err;
-	
+
 			var newid = result.insertId;
 			conn.end();
 			callback(newid);
@@ -77,7 +78,7 @@ exports.deleteEvent = function(id, data, msg, callback) {
 	if (data.idx) {
 		//delete a repeating event
 		if (data.idx.charAt(0) == "x") {
-			
+
 			//delete all future events beyond this index
 			var idx = data.idx.substring(1);
 
@@ -90,7 +91,7 @@ exports.deleteEvent = function(id, data, msg, callback) {
 
 						if(results.length > 0) {
 							var newend = results[results.length-1].end;
-							conn.query('UPDATE ca_event SET end_after = "' + newend + '" WHERE id = ' + id, function(err, result) {							
+							conn.query('UPDATE ca_event SET end_after = "' + newend + '" WHERE id = ' + id, function(err, result) {
 								conn.end();
 								msg.push({
 									operation: 'update',
@@ -102,14 +103,14 @@ exports.deleteEvent = function(id, data, msg, callback) {
 							})
 						} else {
 							conn.end();
-							
+
 							msg.push({
 								operation: 'delete',
 								resource: 'event',
 								id: id,
 								updated: new Date()
 							})
-							
+
 							callback(null);
 						}
 					})
@@ -164,12 +165,12 @@ exports.deleteEvent = function(id, data, msg, callback) {
 					id: id,
 					updated: new Date()
 				})
-				
+
 				conn.end();
 				callback(null);
 			})
 		})
-	}	
+	}
 };
 
 exports.createRepeatingEvent = function(id, data, callback) {
@@ -203,7 +204,7 @@ exports.createRepeatingEvent = function(id, data, callback) {
 		for(j=1;j<freq;j++) {
 			repeat_list[j-1] = j;
 		}
-		
+
 		async.eachSeries(repeat_list, function(freq_idx, cb) {
 			pool.getConnection(function(err, conn) {
 				newstart = new Date(start.getTime() + repeat * freq_idx * interval_s).toISOString();
@@ -221,7 +222,7 @@ exports.createRepeatingEvent = function(id, data, callback) {
 			})
 		}, function(err) {
 			if (err) throw err;
-			
+
 			callback(null);
 		})
 };
@@ -261,7 +262,7 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 							}
 						}
 
-						if((rrepeat) && (parseInt(rrepeat) > 0) && (rindex>0)){								
+						if((rrepeat) && (parseInt(rrepeat) > 0) && (rindex>0)){
 							//if it's a repeating event, and the change doesn't begin from the start, keep the old relationship and people, just create a new relationship and people for the change.
 							if(people_new.length > 0 || people_old.length > 0){
 								conn.query('INSERT INTO ca_relation SET ?', {
@@ -278,19 +279,19 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 										id: rid,
 										updated: new Date()
 									});
-									
+
 									conn.end();
 
 									callback(null, rid, people_new, []);
 								})
 							} else {
 								conn.end();
-								
+
 								callback(null, null, people_new, people_old);
 							}
 						} else {
 							conn.end();
-							
+
 							if(people_new.length > 0 || people_old.length > 0){
 								msg.push({
 									operation: 'update',
@@ -317,14 +318,14 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 								if(err) throw err;
 
 								var rid = result.insertId;
-								
+
 								msg.push({
 									operation: 'create',
 									resource: 'relation',
 									id: rid,
 									updated: new Date()
 								});
-								
+
 								conn.end();
 								callback(null, rid, newpeople, []);
 							})
@@ -332,7 +333,7 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 							conn.query('DELETE FROM ca_relation WHERE id = ' + oldrelation_id, function(err, results) {
 								//insert new relationship
 								if (err) throw err;
-								
+
 								msg.push({
 									operation: 'delete',
 									resource: 'relation',
@@ -354,7 +355,7 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 										id: rid,
 										updated: new Date()
 									});
-									
+
 									conn.end();
 									callback(null, rid, newpeople, []);
 								})
@@ -382,7 +383,7 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 								id: oldrelation_id,
 								updated: new Date()
 							});
-							
+
 							conn.end();
 							callback(null, null, null, null);
 						})
@@ -392,7 +393,7 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 		}
 	} else {
 		//old relationship doesn't exist
-		//check whether there is relationship, if there is insert the new relationship, 
+		//check whether there is relationship, if there is insert the new relationship,
 		//then update people table
 		if (newrelation && newrelation != '') {
 			//insert new relationship
@@ -411,7 +412,7 @@ exports.compareRelation = function(oldrelation_id, oldrelation, newrelation, new
 						id: rid,
 						updated: new Date()
 					});
-					
+
 					conn.end();
 					callback(null, rid, newpeople, null, msg);
 				})
@@ -574,7 +575,7 @@ exports.clearRelationTable = function(cid, msg, callback) {
 					updated: new Date()
 				});
 			}
-			
+
 			conn.end();
 			callback(null, msg);
 		})
@@ -594,7 +595,7 @@ exports.clearLocationTable = function(cid, msg, callback) {
 					updated: new Date()
 				});
 			}
-			
+
 			conn.end();
 			callback(null, msg);
 		})
@@ -604,7 +605,7 @@ exports.clearLocationTable = function(cid, msg, callback) {
 exports.generateId = function() {
 	// unique id generator
 		var S4 = function () {
-		  return (((1 + Math.random()) * 0x10000) | 
+		  return (((1 + Math.random()) * 0x10000) |
 		                                     0).toString(16).substring(1);
 		 };
 			 return (S4() + S4() + "-" + S4() + "-" + S4() + "-" +

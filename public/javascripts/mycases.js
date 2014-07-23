@@ -3,18 +3,18 @@ $(document).ready(function() {
 	$("body").height($(window).height());
 	$("body").width($(window).width());
 	panel_width = 165;
-	
-	$( "#accordion" ).accordion(); 
+
+	$( "#accordion" ).accordion();
   //var nav_tree = dhtmlXTreeFromHTML("nav_panel");
 
 	$(".leftslidingmenu").width(panel_width);
 	$(".rightslidingmenu").width(panel_width);
-	
+
 	var container = $("#container");
 	container.width($(window).width() - panel_width*2 - $(".lefttrigger").width()*2 - 25);
 	container.height($(window).height());
 	container.css("left", panel_width+20);
-	
+
 	//register event triggers
 	$(".lefttrigger").click(function(){
 		$(".leftslidingmenu").slideToggleWidth();

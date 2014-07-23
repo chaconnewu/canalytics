@@ -1374,11 +1374,16 @@
                       location: loc_selected
                     });
                   }
+                  calog({
+                      operation: 'create location',
+                      artifact: 'doc',
+                      data: JSON.stringify({ location: loc_selected })
+                  });
                   return callback({
                     value: loc_selected,
                     text: loc_selected
                   });
-                } else {
+              } else {
                   return callback();
                 }
               });
@@ -1408,6 +1413,11 @@
                   option[0].selectize.refreshOptions();
                 }
               }
+              calog({
+                  operation: 'create people',
+                  artifact: 'doc',
+                  data: JSON.stringify({ people: input })
+              });
               return {
                 value: input,
                 text: input
@@ -1438,6 +1448,11 @@
                   option[0].selectize.refreshOptions();
                 }
               }
+              calog({
+                  operation: 'create relation',
+                  artifact: 'doc',
+                  data: JSON.stringify({ relation: input })
+              });
               return {
                 value: input,
                 text: input

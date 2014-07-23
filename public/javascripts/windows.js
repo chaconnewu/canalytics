@@ -24,13 +24,11 @@ function bringToTop(el) {
 	if (win.id) $("#" + win.id).css("z-index", win.zindex);
 	win.id = $(el).attr("id");
 	win.zindex = $(el).css("z-index");
-	$(el).animate({
-		zIndex: 999
-	}, "fast");
+	$(el).css('z-index', 999);
 };
 
 var caWindows = {};
-caWindows.parentdiv = null; //parent is the id of the parent element that all ca windows will attach to	
+caWindows.parentdiv = null; //parent is the id of the parent element that all ca windows will attach to
 caWindows.default_width = 640;
 caWindows.default_height = 480;
 caWindows.wins = [];
@@ -63,9 +61,10 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 				border: 0,
 				cellspacing: 0,
 				overflow: 'hidden',
-				style: "border:0;width:100%;height:100%;"
+				style: "border:0;width:100%;height:100%;",
 			}).appendTo(win);
-            _this.hideFilter(windowid);
+			win.data('artifact', 'doc');
+            _this.createFilter(windowid);
 			break;
 		case 'map':
 			$.get(href, function(data) {
@@ -98,7 +97,13 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 		}
 	}
 
-	bringToTop(win.parent()[0]);
+    calog({
+        operation: 'open artifact',
+		artifact: type,
+		data: JSON.stringify({ window_id: windowid, link: href })
+    });
+
+	bringToTop(win.parents()[1]);
 
 	return false;
 };
@@ -186,13 +191,25 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 			header.css({
 				width: $(this).width() - 28
 			});
-			win.css({
-				width: $(this).width() - 310,
-				height: $(this).height() - header.height() - 20
-			});
-			filterbar.css({
-				height: win.height()
-			})
+            var righttrigger = $(this).find('.righttrigger');
+            if (righttrigger.hasClass('active')) {
+                win.css({
+                    width: $(this).width() - 60,
+                    height: $(this).height() - header.height() - 20
+                });
+                filterbar.css({
+                    height: win.height(),
+
+                })
+            } else {
+                win.css({
+                    width: $(this).width() - 310,
+                    height: $(this).height() - header.height() - 20
+                });
+                filterbar.css({
+                    height: win.height()
+                })
+            }
 		}
 	});
 
@@ -200,12 +217,19 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 	parker.click(function() {
 		box_content.slideToggle();
 		parker.toggleClass("active");
+
+		calog({ operation: 'collapse artifact', artifact: win.data('artifact') });
 		return false;
 	});
 	closer.click(function() {
+		calog({
+			operation: 'close artifact',
+			artifact: win.data('artifact'),
+		});
 		//box.css("visibility", "hidden");
 		box.remove();
 		_this.wins.splice(_this.wins.indexOf(windowid), 1);
+
 		return false;
 	});
 
@@ -214,6 +238,7 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 			return;
 		}
 		bringToTop(this);
+		calog({ operation: 'focus artifact', artifact: win.data('artifact') });
 	});
 
 	this.wins.push(windowid);
@@ -233,19 +258,28 @@ caWindows.createFilter = function(windowid) {
 
 	$('<span>Filter:</span>').appendTo(filterbar);
 		var apply_btn = $('<button type="button" style="margin: 20px; float: right">Apply</button><br><br>').appendTo(filterbar);
-	var location_select = $('<select id="filterlocation" multiple placeholder="Select locations..." tabindex="6"/>').appendTo(filterbar);
-	var person_select = $('<select name="people" multiple placeholder="Select people..." tabindex="6"/>').appendTo(filterbar);
-	var relation_select = $('<select name="relation" multiple placeholder="Select relations..." tabindex="6"/>').appendTo(filterbar);
-	var time_from = $('<span>Start After: </span><br><input id="time_from" type="datetime-local" name="from" /><br>').appendTo(filterbar);
-	var time_to = $('<span>And End Before: </span><br><input id="time_to" type="datetime-local" name="to" />').appendTo(filterbar);
-	
+	var location_div = $('<div />').appendTo(filterbar);
+	$('<input type="checkbox" name="check_location" value="check_location">').appendTo(location_div);
+	var location_select = $('<select id="filterlocation" multiple placeholder="Select locations..." tabindex="6"/>').appendTo(location_div);
+	var person_div = $('<div />').appendTo(filterbar);
+	$('<input type="checkbox" name="check_person" value="check_person">').appendTo(person_div);
+	var person_select = $('<select name="people" multiple placeholder="Select people..." tabindex="6"/>').appendTo(person_div);
+	var relation_div = $('<div />').appendTo(filterbar);
+	$('<input type="checkbox" name="check_relation" value="check_relation">').appendTo(relation_div);
+	var relation_select = $('<select name="relation" multiple placeholder="Select relations..." tabindex="6"/>').appendTo(relation_div);
+	var time_div = $('<div />').appendTo(filterbar);
+	$('<input type="checkbox" name="check_time" value="check_time"><br>').appendTo(time_div);
+	var div = $('<div />').appendTo(time_div);
+	var time_from = $('<span>From: </span><input id="time_from" type="datetime-local" name="from" /><br>').appendTo(div);
+	var time_to = $('<span>To: </span><input id="time_to" type="datetime-local" name="to" />').appendTo(div);
+
 	var time;
-	
+
 	window.dropdownlists.locationlists.push(location_select.selectize({
 		hideSelected: true,
 		options: calocation.location_options
 	}));
-	
+
 	window.dropdownlists.peoplelists.push(person_select.selectize({
 		hideSelected: true,
 		options: capeople.people_options
@@ -255,7 +289,7 @@ caWindows.createFilter = function(windowid) {
 		hideSelected: true,
 		options: capeople.relation_options
 	}));
-	
+
 	var data = {};
 
     $(".righttrigger").click(function(){
@@ -264,47 +298,59 @@ caWindows.createFilter = function(windowid) {
         var container = $(this).parent().siblings()[0];
         container = $(container);
         var panel_width = 249;
+		var status;
         if($(this).hasClass("active")) {
             container.width(container.width()+panel_width);
 //            container.animate({
 //                right: parseInt(container.css("right"),10)-panel_width
 //            }, "slow");
+			status = 'show';
         } else {
             container.width(container.width()-panel_width);
 //            container.animate({
 //                right: parseInt(container.css("right"),10)+panel_width
 //            }, "slow");
+			status = 'hide';
         }
+
+		calog({
+			operation: 'toggle filter bar',
+			artifact: $(this).parents('.cabox').find('.cawindow').data('artifact'),
+			data: JSON.stringify({ toggle_to: status })
+		});
+
         return false;
     });
 
 	apply_btn.click(function(){
 		var _this = this;
 		data.ca_case_id = window.ca_case_id;
-		if(location_select.val()){
+		if($('input[name="check_location"]').is(':checked')){
 			data.location_select = location_select.val();
 		}
-		if(person_select.val()){
+		if($('input[name="check_person"]').is(':checked')){
 			data.person_select = person_select.val();
 		}
-		if(relation_select.val()){
+		if($('input[name="check_relation"]').is(':checked')){
 			data.relation_select = relation_select.val();
 		}
-		if($('#time_from').val()&&$('#time_from').val()){
+		if($('input[name="check_time"]').is(':checked')){
 			data.time_from = $('#time_from').val();
 			data.time_to = $('#time_to').val();
 		}
-
-		var module = windowid.split('_')[0];
-		console.log(data);
-		
+        calog({
+            operation: 'filter',
+            artifact: $(_this).parents('.cabox').find('.cawindow').data('artifact'),
+            data: JSON.stringify(data)
+        });
 		$.get('/filter', data, function(results){
 			data = {};
-			console.log(results);
+//			console.log(results);
+			var module = $(_this).parents('.cabox').attr('id');
 			if(results){
-				if(module == 'map'){
+				if(module.indexOf('map') > -1){
 					window.camap.reload(results);
-				}else if(module == 'cal'){
+				}else if(module.indexOf('cal') > -1){
 					var eid = [];
 					for(var i in results){
 						if(results[i].eid) eid.push(results[i].eid);
@@ -312,7 +358,7 @@ caWindows.createFilter = function(windowid) {
 					$.get('/calendars/search/'+window.ca_case_id, {eid: eid}, function(data){
 						window.cacalendar.reload(data);
 					})
-				}else if(module == 'graph'){
+				}else if(module.indexOf('graph') > -1){
 					results.relationlist = results;
 					window.cagraph.reload(results);
 				}

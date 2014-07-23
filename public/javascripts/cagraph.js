@@ -1,9 +1,10 @@
 function caGraph(el, data) {
 		// set up the D3 visualisation in the specified element
-    this.w = el.innerWidth(),
+    el.data('artifact', 'graph');
+    this.w = el.innerWidth();
     this.h = el.innerHeight();
-		this.nodePair = {};
-		
+	this.nodePair = {};
+
     this.force = d3.layout.force()
         .linkDistance(150)
         .charge(-500)
@@ -11,15 +12,15 @@ function caGraph(el, data) {
 
 		this.nodes = this.force.nodes(),
 		this.links = this.force.links();
-			
+
     this.svg = d3.select(el[0]).append("svg:svg")
 		        								.attr("width", this.w)
-		        								.attr("height", this.h);				
+		        								.attr("height", this.h);
 
 		this.div = d3.select('body').append('div')
 																.attr('class', 'tooltip')
 																.style('opacity', 0);
-																
+
 		if(data.relationlist.length > 0) this.load(data);
     // Make it all go
     this.update();
@@ -118,20 +119,39 @@ caGraph.prototype.update = function () {
 
 								_this.div.transition()
 												 .style('opacity', 0.7);
-								})
-							.on('mouseout', function(){
+                                calog({
+                                    operation: 'show link info',
+                                    artifact: 'graph',
+                                    data: JSON.stringify({ link: d.id })
+                                });
+							})
+							.on('mouseout', function(d){
 								d3.select(this).transition()
 															 .style('stroke', '#ccc');
 								_this.div.transition()
 												 .style('opacity', 0);
-								});
+                                calog({
+                                    operation: 'hide link info',
+                                    artifact: 'graph',
+                                    data: JSON.stringify({ link: d.id })
+                                });
+							});
 
 	link.exit().remove();
 //	    				.attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
 
 	var node = this.svg.selectAll(".node")
-	    														.data(this.force.nodes(), function(d){ return d.id; });
-	  
+		.data(this.force.nodes(), function(d){ return d.id; });
+
+    this.force.drag().on('dragend', function(d) {
+        calog({
+            operation: 'drag node',
+            artifact: 'graph',
+            data: JSON.stringify({ node: d.id })
+        });
+    })
+
+
 	var nodeenter = node.enter().append("svg:g")
 	    					.attr("class", 'node');
 								nodeenter.append('svg:image')
@@ -157,13 +177,13 @@ caGraph.prototype.update = function () {
 				.attr('y1', function(d){ return d.source.y; })
 				.attr('x2', function(d){ return d.target.x; })
 				.attr('y2', function(d){ return d.target.y; })
-				.attr('style', function(d){ 
+				.attr('style', function(d){
 					var width = Object.keys(_this.nodePair[d.source.id+'_'+d.target.id]).length+1;
 					return 'stroke-width:'+width; });
-		
+
 		node.attr('transform', function(d){ return 'translate(' + d.x + ',' + d.y + ')'; });
 	});
-	
+
   this.force.start();
 
     // Format json-style link data in clean way for display
@@ -194,7 +214,7 @@ caGraph.prototype.update = function () {
 
 caGraph.prototype.reload = function(data) {
 	this.nodePair = {};
-	
+
   this.force = d3.layout.force()
       .linkDistance(150)
       .charge(-500)
@@ -202,7 +222,7 @@ caGraph.prototype.reload = function(data) {
 
 	this.nodes = this.force.nodes(),
 	this.links = this.force.links();
-	
+
 	if(data.relationlist.length > 0) this.load(data);
   // Make it all go
   this.update();
@@ -247,7 +267,7 @@ caGraph.prototype.load = function(data) {
 caGraph.prototype.unload = function(id) {
 	var _this = this;
 	var rmlist = [];
-	
+
 	Object.keys(this.nodePair).forEach(function(np){
 		var n = _this.nodePair[np];
 		Object.keys(n).forEach(function(typeid){

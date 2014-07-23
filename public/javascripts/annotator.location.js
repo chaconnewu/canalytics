@@ -125,7 +125,7 @@
                   }
                   params = "location=" + encodeURIComponent(loc_selected) + "&lat=" + addrs[loc_selected].lat() + "&lng=" + addrs[loc_selected].lng();
                   return that.ajax_request('/maps/' + window.top.ca_case_id, 'POST', params, function() {
-                    socket.emit('createlocation', {
+                    window.top.socket.emit('createlocation', {
                       room: window.top.ca_case_id,
                       id: loc_selected
                     });

@@ -1352,7 +1352,7 @@
                 var option, _k, _len2, _ref2;
                 if (loc_selected) {
                   window.top.calocation.location_list.push(loc_selected);
-                  window.top.caloction.location_list.push({
+                  window.top.calocation.location_list.push({
                     value: loc_selected,
                     text: loc_selected
                   });
@@ -1374,7 +1374,7 @@
                       location: loc_selected
                     });
                   }
-                  calog({
+                  window.top.calog({
                       operation: 'create location',
                       artifact: 'doc',
                       data: JSON.stringify({ location: loc_selected })
@@ -1413,7 +1413,7 @@
                   option[0].selectize.refreshOptions();
                 }
               }
-              calog({
+              window.top.calog({
                   operation: 'create people',
                   artifact: 'doc',
                   data: JSON.stringify({ people: input })
@@ -1448,7 +1448,7 @@
                   option[0].selectize.refreshOptions();
                 }
               }
-              calog({
+              window.top.calog({
                   operation: 'create relation',
                   artifact: 'doc',
                   data: JSON.stringify({ relation: input })

@@ -74,10 +74,10 @@
     Store.prototype.annotationCreated = function(annotation) {
       var _this = this;
       annotation.color = window.top.usercolor;
-      calog({
+      window.top.calog({
           operation: 'create annotation',
           artifact: 'doc',
-          data: JSON.stringify(annotation)
+          data: JSON.stringify(this._dataFor(annotation))
       });
       if (__indexOf.call(this.annotations, annotation) < 0) {
         this.registerAnnotation(annotation);
@@ -99,10 +99,10 @@
 
     Store.prototype.annotationUpdated = function(annotation) {
       var _this = this;
-      calog({
+      window.top.calog({
           operation: 'update annotation',
           artifact: 'doc',
-          data: JSON.stringify(annotation)
+          data: JSON.stringify(this._dataFor(annotation))
       });
       if (__indexOf.call(this.annotations, annotation) >= 0) {
         return this._apiRequest('update', annotation, (function(data) {
@@ -113,10 +113,10 @@
 
     Store.prototype.annotationDeleted = function(annotation) {
       var _this = this;
-      calog({
+      window.top.calog({
           operation: 'delete annotation',
           artifact: 'doc',
-          data: JSON.stringify(annotation)
+          data: JSON.stringify(this._dataFor(annotation))
       });
       if (__indexOf.call(this.annotations, annotation) >= 0) {
         return this._apiRequest('destroy', annotation, (function(data) {

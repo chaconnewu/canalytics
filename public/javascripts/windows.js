@@ -61,7 +61,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 				border: 0,
 				cellspacing: 0,
 				overflow: 'hidden',
-				style: "border:0;width:100%;height:100%;",
+				style: "border:0;width:100%;height:99%;",
 			}).appendTo(win);
 			win.data('artifact', 'doc');
             _this.createFilter(windowid);
@@ -90,7 +90,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 			})
 			break;
 		case 'notepad':
-			win.html("<iframe name='embed_readwrite' src='http://localhost:9001/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width='99%' height='98%'></iframe>");
+			win.html("<iframe name='embed_readwrite' src='http://localhost:9090/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width='99%' height='98%'></iframe>");
             _this.hideFilter(windowid);
 		default:
 			break;
@@ -157,7 +157,7 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 		css: {
 			"width": width,
 			"height": height,
-			"overflow": "scroll",
+			"overflow": "auto",
 			"border": "0px"
 		}
 	}).appendTo(box_content);
@@ -192,24 +192,31 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 				width: $(this).width() - 28
 			});
             var righttrigger = $(this).find('.righttrigger');
-            if (righttrigger.hasClass('active')) {
+			if (! righttrigger.length) { // ugly judge, if righttrigger is not found, it indicates there is no filterbar; here designed specifically for notepad
                 win.css({
-                    width: $(this).width() - 60,
+                    width: $(this).width() - 5,
                     height: $(this).height() - header.height() - 20
                 });
-                filterbar.css({
-                    height: win.height(),
+			} else {
+	            if (righttrigger.hasClass('active')) {
+	                win.css({
+	                    width: $(this).width() - 60,
+	                    height: $(this).height() - header.height() - 20
+	                });
+	                filterbar.css({
+	                    height: win.height(),
 
-                })
-            } else {
-                win.css({
-                    width: $(this).width() - 310,
-                    height: $(this).height() - header.height() - 20
-                });
-                filterbar.css({
-                    height: win.height()
-                })
-            }
+	                })
+	            } else {
+	                win.css({
+	                    width: $(this).width() - 310,
+	                    height: $(this).height() - header.height() - 20
+	                });
+	                filterbar.css({
+	                    height: win.height()
+	                })
+	            }
+			}
 		}
 	});
 

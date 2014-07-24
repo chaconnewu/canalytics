@@ -99,7 +99,7 @@
             addrs = {};
             for (_i = 0, _len = results.length; _i < _len; _i++) {
               result = results[_i];
-              radio_btns += "<input type='radio' name='loc' value='" + result["formatted_address"] + "'>" + result["formatted_address"] + "<br>";
+              radio_btns += '<input type="radio" name="loc" value="' + result["formatted_address"] + '">' + result["formatted_address"] + '<br>';
               addrs[result["formatted_address"]] = result["geometry"]["location"];
             }
             $(el).append("<div id='location_alert'><form id='locform' name='locform'><b>Which location do you mean?</b><br>" + radio_btns + "</form></div>");

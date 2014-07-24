@@ -69,6 +69,11 @@ caCalendar.prototype.setupDropDownList = function() {
 							location: loc_selected
 						})
 					}
+					window.top.calog({
+						operation: 'create location',
+						artifact: 'calendar',
+						data: JSON.stringify({ location: loc_selected })
+					});
 					callback({
 						value: loc_selected,
 						text: loc_selected
@@ -76,7 +81,7 @@ caCalendar.prototype.setupDropDownList = function() {
 				} else {
 					callback();
 				}
-			})
+			});
 		}
 	});
 	this.dropdowncontrol.selectlocation[0].selectize.on('option_add', function() {
@@ -103,6 +108,11 @@ caCalendar.prototype.setupDropDownList = function() {
 					window.dropdownlists.peoplelists[i][0].selectize.refreshOptions();
 				}
 			}
+			window.top.calog({
+				operation: 'create people',
+				artifact: 'calendar',
+				data: JSON.stringify({ people: input })
+			});
 			return {
 				value: input,
 				text: input
@@ -129,6 +139,11 @@ caCalendar.prototype.setupDropDownList = function() {
 					window.dropdownlists.relationlists[i][0].selectize.refreshOptions();
 				}
 			}
+			window.top.calog({
+				operation: 'create relation',
+				artifact: 'calendar',
+				data: JSON.stringify({ relation: input })
+			});
 			return {
 				value: input,
 				text: input

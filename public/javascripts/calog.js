@@ -9,6 +9,6 @@ function calog(oper) {
         data: oper.data
     };
     $.post('/activitylog', log, function(error, result) {
-
-    })
+        console.log('logged');
+    });
 }

@@ -182,6 +182,13 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 				container.height(container.height() + 800);
 				sidepanel.height(sidepanel.height() + 800);
 			}
+		},
+		stop: function(e, ui) {
+			calog({
+				operation: 'drag artifact',
+				artifact: win.data('artifact'),
+				data: JSON.stringify({drag_to: ui.position})
+			});
 		}
 	});
 	box.resizable({
@@ -217,6 +224,13 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 	                })
 	            }
 			}
+		},
+		stop: function(e, ui) {
+			calog({
+				operation: 'resize artifact',
+				artifact: win.data('artifact'),
+				data: JSON.stringify({size_to: [$(this).width(), $(this).height()]})
+			});
 		}
 	});
 

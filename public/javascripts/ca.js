@@ -78,12 +78,7 @@ $(document).ready(function() {
     // resize container when browser window resizes
     $(window).resize(function() {
         container.width($(window).width() - panel_width - $(".lefttrigger").width() - 25);
-		calog({
-			operation: 'resize',
-			artifact: 'window',
-			data: JSON.stringify({size_to: [$(window).width(), $(window).height()]})
-		});
-    })
+    });
 	//register event triggers
 	$(".lefttrigger").click(function(){
 		$(".leftslidingmenu").slideToggleWidth();

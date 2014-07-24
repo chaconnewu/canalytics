@@ -10,10 +10,11 @@ exports.activitylog = function(req, res) {
     var log = req.body;
     if (!log) return;
     log.user = req.session.username;
-    exports.logs(log);
+    exports.logs(log, res);
+    res.send('');
 }
 
-exports.logs = function(log) {
+exports.logs = function(log, res) {
     if (!log) return;
 
     var str = '';
@@ -37,7 +38,7 @@ exports.logs = function(log) {
    pool.getConnection(function(err, conn) {
        conn.query('SELECT id from ca_user WHERE username=' + conn.escape(user), function(err, results) {
            if (err) {
-               console.log("Activity log failed, no such user exists: ", + err);
+               console.warn("Activity log failed, no such user exists: ", + err);
                conn.end();
                return;
            }
@@ -51,11 +52,11 @@ exports.logs = function(log) {
                    time: time
                }, function(err, results) {
                    if (err) {
-                       console.log("Activity log failed: " + err);
-                       conn.end()
+                       console.warn("Activity log failed: " + err);
+                       conn.end();
                        return;
                    }
-                   conn.end()
+                   conn.end();
                }
            );
        })

@@ -1367,13 +1367,13 @@
                       option[0].selectize.refreshOptions();
                     }
                   }
-                  if (window.top.camap) {
+                  /*if (window.top.camap) {
                     window.top.camap.newMarker({
                       lat: addrs[loc_selected].lat(),
                       lng: addrs[loc_selected].lng(),
                       location: loc_selected
                     });
-                  }
+                  }*/
                   window.top.calog({
                       operation: 'create location',
                       artifact: 'doc',

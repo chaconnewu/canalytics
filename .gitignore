@@ -6,3 +6,4 @@
 *.idea
 Icon?
 *.db
+dbpool.js

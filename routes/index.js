@@ -43,6 +43,7 @@ exports.signup = function(req, res){
 };
 
 exports.logout = function(req, res){
+	console.log('logout');
 	blocklist[userblocklist[req.session.uid]] = '';
 	userblocklist[req.session.uid] = '';
 	delete req.session.username;

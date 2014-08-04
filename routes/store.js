@@ -137,12 +137,14 @@ exports.create = function(req, res) {
 		// msg = [{operation:create[delete][update], resource:annotation[event][relation], id:id},[...],...]
 		var msg = [];
 		var aid = null;
-		
+
 		async.waterfall([
 
 		function(callback) {
 			pool.getConnection(function(err, conn) {
+				console.log('qs is: ' + JSON.stringify(qs));
 				conn.query('INSERT INTO ca_annotation SET ?', qs, function(err, result) {
+					console.log('result is: ' + JSON.stringify(result));
 					msg.push({
 						operation: 'create',
 						resource: 'annotation',
@@ -150,7 +152,7 @@ exports.create = function(req, res) {
 						updated: new Date()
 					})
 					conn.end();
-					
+
 					aid = result.insertId;
 					callback(err, result.insertId);
 				})
@@ -236,7 +238,7 @@ exports.update = function(req, res) {
 				}
 			}
 		});
-		
+
 		//the message array carries information about what has been added/deleted/updated during the process of creat, update, and delete. Each message takes the following form,
 		// msg = [{operation:create[delete][update], resource:annotation[event][relation], id:id},[...],...]
 		var msg = [];
@@ -278,7 +280,7 @@ exports.update = function(req, res) {
 					if (err) throw err;
 
 					conn.end();
-					
+
 					msg.push({
 						operation: 'update',
 						resource: 'annotation',
@@ -492,7 +494,7 @@ exports.delete = function(req, res) {
 								id: rid,
 								updated: new Date()
 							});
-							
+
 							conn.end();
 							callback(null);
 						})
@@ -507,19 +509,19 @@ exports.delete = function(req, res) {
 			pool.getConnection(function(err, conn) {
 				conn.query('SELECT ca_event.id AS eid FROM ca_event JOIN ca_annotation ON ca_event.ca_annotation_id = ca_annotation.id WHERE ca_annotation.id = ' + req.params.id, function(err, results) {
 					if(err) console.log(err);
-					
+
 					if(results.length > 0) {
 						var eid = results[0].eid;
-						
+
 						msg.push({
 							operation: 'delete',
 							resource: 'event',
 							id: eid,
 							updated: new Date()
-						});	
-						
+						});
+
 						conn.end();
-						callback(null);	
+						callback(null);
 					} else {
 						conn.end();
 						callback(null);
@@ -530,7 +532,7 @@ exports.delete = function(req, res) {
 			pool.getConnection(function(err, conn) {
 				conn.query('SELECT ca_doc_uuid FROM ca_annotation WHERE id = ' + req.params.id, function(err, result) {
 					if(err) console.log(err);
-					
+
 					conn.end();
 					callback(null, result[0].ca_doc_uuid);
 				})
@@ -539,7 +541,7 @@ exports.delete = function(req, res) {
 			pool.getConnection(function(err, conn) {
 				conn.query('DELETE FROM ca_annotation WHERE id = ' + req.params.id, function(err, result) {
 					if (err) console.log(err);
-					
+
 					msg.push({
 						operation: 'delete',
 						resource: 'annotation',

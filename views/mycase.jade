@@ -38,6 +38,8 @@ block content
 	div.left.sidepanel
 		div.leftslidingmenu
 			div.top_left_banner
+				span= 'Hello, ' + username + '!'
+				a.heading(href='/logout', class='logout') Logout
 				h1= ca_case_title
 			#nav_panel
 				ul#accordion

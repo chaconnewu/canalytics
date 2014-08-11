@@ -94,7 +94,7 @@ socket.on('createevent', function(data) {
 		if (e.length != results.length) {
 			window.cacalendar.el.fullCalendar('removeEvents', results[0].id);
 			for (var i = 0; i < results.length; i++) {
-				window.cacalendar.el.fullCalendar('renderEvent', results[i]);
+				window.cacalendar.el.fullCalendar('renderEvent', results[i], true);
 			}
 		} else {
 			for (var i = 0; i < results.length; i++) {
@@ -116,7 +116,7 @@ socket.on('updateevent', function(data) {
 		if (e.length != results.length) {
 			window.cacalendar.el.fullCalendar('removeEvents', results[0].id);
 			for (var i = 0; i < results.length; i++) {
-				window.cacalendar.el.fullCalendar('renderEvent', results[i]);
+				window.cacalendar.el.fullCalendar('renderEvent', results[i], true);
 			}
 		} else {
 			for (var i = 0; i < results.length; i++) {

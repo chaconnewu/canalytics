@@ -89,7 +89,7 @@
           $.extend(annotation, {
             id: data.id
           });
-          data = data.msg;
+
           return _this.updateAnnotation(annotation, data);
         });
       } else {

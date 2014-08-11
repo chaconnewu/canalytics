@@ -1,4 +1,4 @@
-clientId = null, nickname = null, currentRoom = null, socket = io.connect('http://localhost:3000');
+clientId = null, nickname = null, currentRoom = null, socket = io.connect(SOCKET_SERVER);
 
 // when the connection is made, the server emiting
 // the 'connect' event
@@ -65,7 +65,7 @@ socket.on('createlocation', function(data) {
 				});
 			});
 		}
-		
+
 		calocation.location_list.push(data.id);
 		calocation.location_options.push({
 			value: data.id,
@@ -79,7 +79,7 @@ socket.on('createlocation', function(data) {
 			window.dropdownlists.locationlists[i][0].selectize.refreshOptions();
 		}
 	}
-	
+
 	$('#activitylog').append('<span class="logtext">location <b>' + data.id.substring(0,10) + '...</b> is created by <font color="' + data.locationlist[0].color + '"> ' + data.locationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
@@ -138,7 +138,7 @@ socket.on('createrelation', function(data) {
 	if (window.cagraph) {
 		window.cagraph.load(data);
 	}
-	
+
 	if(capeople.relation_list.indexOf(data.relationlist[0].relation)<0) {
 		capeople.relation_list.push(data.relationlist[0].relation);
 		capeople.relation_options.push({
@@ -153,7 +153,7 @@ socket.on('createrelation', function(data) {
 			window.dropdownlists.relationlists[i][0].selectize.refreshOptions();
 		}
 	}
-	
+
 	var people = "";
 	for(var i in data.relationlist){
 		if(capeople.people_list.indexOf(data.relationlist[i].name)<0) {
@@ -179,7 +179,7 @@ socket.on('updaterelation', function(data) {
 	if (window.cagraph) {
 		window.cagraph.load(data);
 	}
-	
+
 	var people = "";
 	for(var i in data.relationlist){
 		if(capeople.people_list.indexOf(data.relationlist[i].name)<0) {
@@ -198,7 +198,7 @@ socket.on('updaterelation', function(data) {
 		}
 		people += data.relationlist[i].name + ' ';
 	}
-	
+
 							$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is updated by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
@@ -240,7 +240,7 @@ socket.on('createannotation', function(data) {
 			}
 		}
 	}
-	
+
 	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is created by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
@@ -274,7 +274,7 @@ socket.on('updateannotation', function(data) {
 			}
 		}
 	}
-	
+
 	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is updated by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
 });
 
@@ -288,9 +288,9 @@ socket.on('deleteannotation', function(data) {
 			var i = __indexOf(data, myAnnotator.plugins['Store'].annotations);
 			if (i >= 0) {
 				var annotation = myAnnotator.plugins['Store'].annotations[i];
-				
+
 					$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is deleted.<font class="logtime">' + data.updated + '</font></span><br>');
-					
+
 				var h, _k, _len2, _ref1;
 				_ref1 = annotation.highlights;
 				for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
@@ -392,8 +392,8 @@ function removeClient(client, announce) {
 	}
 };
 
-// every client can join workspaces that he has access to, when join, 
-// the client is unsubscribed from the current room and then subscribed 
+// every client can join workspaces that he has access to, when join,
+// the client is unsubscribed from the current room and then subscribed
 // to the room he just created
 
 function joinRoom(room) {

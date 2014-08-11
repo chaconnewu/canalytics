@@ -7,3 +7,4 @@
 Icon?
 *.db
 dbpool.js
+*.log

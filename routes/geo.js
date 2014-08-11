@@ -79,7 +79,7 @@ exports.create = function(req, res) {
 			if(err){
 				conn.end();
 			} else {
-				conn.query('INSERT INTO ca_location SET ?', {
+				conn.query('INSERT INTO ca_location SET ? ON DUPLICATE KEY UPDATE lat=lat, lng=lng', {
 					location: req.body.location,
 					lat: req.body.lat,
 					lng: req.body.lng,

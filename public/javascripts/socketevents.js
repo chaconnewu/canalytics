@@ -108,8 +108,8 @@ socket.on('createevent', function(data) {
 });
 
 socket.on('updateevent', function(data) {
-	if (window.cacalendar) {
 		var results = data.eventlist;
+	if (window.cacalendar) {
 
 		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
 

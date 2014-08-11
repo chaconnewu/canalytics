@@ -71,12 +71,14 @@ socket.on('createlocation', function(data) {
 			value: data.id,
 			text: data.id
 		});
-		for (var i in window.dropdownlists.locationlists) {
-			window.dropdownlists.locationlists[i][0].selectize.addOption({
+
+		for (var i=0; i<window.dropdownlists.locationlists.length; i++) {
+			var ll = window.dropdownlists.locationlists[i];
+			ll[0].selectize.addOption({
 				value: data.id,
 				text: data.id
 			});
-			window.dropdownlists.locationlists[i][0].selectize.refreshOptions();
+			ll[0].selectize.refreshOptions();
 		}
 	}
 

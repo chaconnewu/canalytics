@@ -147,8 +147,8 @@
       if (__indexOf.call(this.annotations, annotation) < 0) {
         console.error(Annotator._t("Trying to update unregistered annotation!"));
       }
-      for (_i = 0, _len = data.length; _i < _len; _i++) {
-        msg = data[_i];
+      for (_i = 0, _len = data.msg.length; _i < _len; _i++) {
+        msg = data.msg[_i];
         window.top.socket.emit(msg.operation + msg.resource, {
           room: window.top.case_case_id,
           id: msg.id,

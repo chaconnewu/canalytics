@@ -39,7 +39,7 @@
       return $('.annotator-status').load('/sync', {
         id: 'annotation_' + annotation.id
       }, function(data) {
-        if (data.indexOf('please wait') !== -1) {
+        if (data.indexOf('please try again') !== -1) {
           $('.annotator-widget :input').prop('disabled', true);
           return $('.annotator-save').addClass('dom-disabled');
         }

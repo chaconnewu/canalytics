@@ -14,6 +14,7 @@ block append head
 	script(src="/javascripts/jquery-ui-timepicker-addon.js")
 	script(src="/javascripts/selectize.js")
 	script(src="/socket.io/socket.io.js")
+	script(src="/javascripts/caconfig.js")
 	script(src="/javascripts/calog.js")
 	script(src="/javascripts/fullcalendar.js")
 	script(src="/javascripts/cacalendar.js")
@@ -38,6 +39,8 @@ block content
 	div.left.sidepanel
 		div.leftslidingmenu
 			div.top_left_banner
+				span= 'Hello, ' + username + '!'
+				a.heading(href='/logout', class='logout') Logout
 				h1= ca_case_title
 			#nav_panel
 				ul#accordion
@@ -46,7 +49,7 @@ block content
 						ul#documents
 							- each doc in doclist
 								li
-									a(href='/files/#{doc.title}/#{doc.title}.html', onclick="return caWindows.openWindow(this, '#{doc.uuid}', '#{doc.title}', 'annotation');") #{doc.title}
+									a(href='/files/#{ca_case_title}/#{doc.title}.html', onclick="return caWindows.openWindow(this, '#{doc.uuid}', '#{doc.title}', 'annotation');") #{doc.title}
 					li
 						a.heading(href='/maps/#{ca_case_id}', onclick="return caWindows.openWindow(this, 'map_#{ca_case_id}', '#{map}', 'map');") #{map}
 					li

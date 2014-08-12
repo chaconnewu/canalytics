@@ -53,13 +53,14 @@ caCalendar.prototype.setupDropDownList = function() {
 						value: loc_selected,
 						text: loc_selected
 					});
-					for (var i in window.dropdownlists.locationlists) {
-						if (window.dropdownlists.locationlists[i][0].selectize != this) {
-							window.dropdownlists.locationlists[i][0].selectize.addOption({
+					for (var i=0; i< window.dropdownlists.locationlists.length; i++) {
+						var ll = window.dropdownlists.locationlists[i];
+						if (ll[0].selectize != this) {
+							ll[0].selectize.addOption({
 								value: loc_selected,
 								text: loc_selected
 							});
-							window.dropdownlists.locationlists[i][0].selectize.refreshOptions();
+							ll[0].selectize.refreshOptions();
 						}
 					}
 					if (window.camap) {

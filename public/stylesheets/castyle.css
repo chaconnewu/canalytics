@@ -166,8 +166,8 @@ a.active.closetrigger {
 		color-stop(0.64, rgb(127,145,163))
 	);
 	font-family: Arial;
-	height: 37px;
-	line-height: 37px;
+	height: 50px;
+	line-height: 17px;
 	border: #cecece 1px solid;
 	text-align: left;
 	overflow: hidden;
@@ -228,33 +228,33 @@ a.active.closetrigger {
 }
 
 /***** Accordion Menu Style *****/
-ul#accordion, ul#accordion ul { list-style: none; margin: 0; }  
-ul#accordion li { margin: 0; }  
+ul#accordion, ul#accordion ul { list-style: none; margin: 0; }
+ul#accordion li { margin: 0; }
 ul#accordion li ul { padding: 5px 5px 5px 20px; width: 50%; border: none; }
-ul#accordion ul li {  
-    border: none;  
-    color: #999;  
-    padding: 0px;  
-}  
-ul#accordion a.heading {  
-    background: #EEE;  
-    color: #999;  
-    display: block;  
-    font-size: 13px;  
-    line-height: 18px;  
-    padding: 2px 20px;  
-    text-decoration: none;  
+ul#accordion ul li {
+    border: none;
+    color: #999;
+    padding: 0px;
+}
+ul#accordion a.heading {
+    background: #EEE;
+    color: #999;
+    display: block;
+    font-size: 13px;
+    line-height: 18px;
+    padding: 2px 20px;
+    text-decoration: none;
 }
 ul#accordion a.heading:hover { background: #00B9D2; color: #fff; }
-ul#accordion li ul a { font-size: 12px; color: #666; text-decoration: none; }  
-ul#accordion li ul a:hover { border-bottom: none; }  
-ul#accordion li ul .date { padding-right: 10px; }  
+ul#accordion li ul a { font-size: 12px; color: #666; text-decoration: none; }
+ul#accordion li ul a:hover { border-bottom: none; }
+ul#accordion li ul .date { padding-right: 10px; }
 ul#accordion li ul .count { padding-left: 10px; }
-ul#accordion { float: left; width: 75%; margin:0; padding:0; }  
-ul#accordion li { float: left; width: 298px; }  
-ul#accordion a.heading { width: 40%; }  
+ul#accordion { float: left; width: 75%; margin:0; padding:0; }
+ul#accordion li { float: left; width: 298px; }
+ul#accordion a.heading { width: 40%; }
 ul#accordion ul li { float: none; width: auto; }
-ul#accordion li.ui-accordion-selected a.heading { background: #025185; color: #fff; } 
+ul#accordion li.ui-accordion-selected a.heading { background: #025185; color: #fff; }
 
 /****balloon style****/
 .balloontip {
@@ -356,4 +356,10 @@ label {
 	overflow-x: hidden;
 	padding: 0px;
 	border: 1px solid black;
+}
+
+.logout {
+    margin-left: 5px;
+    font-size: 8pt;
+    text-decoration: none;
 }

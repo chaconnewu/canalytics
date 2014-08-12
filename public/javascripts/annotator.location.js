@@ -120,8 +120,14 @@
                   var loc_selected, params;
                   loc_selected = $('input:radio[name=loc]:checked').val();
                   $(this).dialog("close");
+									var x = addrs[loc_selected].lat();
+									var y = addrs[loc_selected].lng();
                   if (window.top.camap) {
-                    window.top.camap.placeMarker(addrs[loc_selected], loc_selected);
+										window.top.camap.newMarker({
+											lat: addrs[loc_selected].lat(),
+											lng: addrs[loc_selected].lng(),
+											location: loc_selected
+										});
                   }
                   params = "location=" + encodeURIComponent(loc_selected) + "&lat=" + addrs[loc_selected].lat() + "&lng=" + addrs[loc_selected].lng();
                   return that.ajax_request('/maps/' + window.top.ca_case_id, 'POST', params, function() {

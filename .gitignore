@@ -7,3 +7,5 @@
 Icon?
 *.db
 dbpool.js
+*.log
+/public/javascripts/caconfig.js

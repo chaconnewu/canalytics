@@ -372,7 +372,7 @@ function reloadrelation(socket, data) {
 				if(err) throw err;
 
 				data.peoplelist = results;
-				conn.query('SELECT DISTINCT relation FROM ca_relation WHERE ca_case_id = ', function(err, results){
+				conn.query('SELECT DISTINCT relation FROM ca_relation WHERE ca_case_id = ' + data.id, function(err, results){
 					if(err) throw err;
 
 					data.relationlist = results;

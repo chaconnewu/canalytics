@@ -14,7 +14,6 @@ exports.mycases = function(req, res) {
 				}
 				conn.end();
 				console.log(req.session.uid);
-				console.log('hello~~~~~~~~~~~~' + caselist);
 				res.render('mycases', {
 					title: "Cases Management Page",
 					caselist: caselist

@@ -66,6 +66,16 @@
 <li>Annotate Emily&#8217;s routine piano class</li>
 <li>Annotate the location of the fire company</li>
 </ul>
+
+<h3 id="tricks">Note</h1>
+
+<p>By the time of the experiment, the system is not yet perfect. There are a few things to keep in mind:</p>
+
+<ul>
+<li>When inputting date, please provide the full date and time (including year, month, day, hour, minute, second, and am/pm).</li>
+<li>When inputting location, do not include comma. If the location cannot be found, try to use the address instead of the place name in the parenthesis.</li>
+</ul>
+
 <script>
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
@@ -84,7 +94,7 @@
 						var options = {
 							ca_doc_uuid: '39cc6efabe9ccc4829ada41bad10e3be'
 						};
-						
+
 						MyAnnotator = $(document.body).data('annotator');
 					$(document.body).data('annotator').plugins['Store'].loadAnnotationsFromSearch(options);
 

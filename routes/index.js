@@ -52,13 +52,13 @@ exports.logout = function(req, res){
 };
 
 exports.sync = function(req, res){
-	console.log('im syncing');
-	console.log(req.body);
-	if(req.body.id){
+	console.log('blocklist: ' + JSON.stringify(blocklist));
+	console.log('userblocklist: ' + JSON.stringify(userblocklist));
+	console.log('id: ' + req.body.id);
+	// id is prefixed with 'annotation_'
+	// id will be 'annotation_undefined' if it is a new annotation
+	if(req.body.id.split('_')[1] !== 'undefined'){
 		//a user is trying to edit an existing resource, if the resource is idling, the resource will be blocked for the user, if the resource is busy, the user will be refused.
-		console.log(blocklist);
-		console.log(userblocklist);
-		console.log(req.body.id);
 		if(blocklist[req.body.id] && blocklist[req.body.id]!='') {
 			//some one is editing the resource, block the current user.
 			res.send(blocklist[req.body.id]+" is entering information ... please try again later.");

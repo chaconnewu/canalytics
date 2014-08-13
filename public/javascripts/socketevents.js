@@ -82,7 +82,7 @@ socket.on('createlocation', function(data) {
 		}
 	}
 
-	$('#activitylog').append('<span class="logtext">location <b>' + data.id.substring(0,10) + '...</b> is created by <font color="' + data.locationlist[0].color + '"> ' + data.locationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+	$('#activitylog').append('<span class="logtext">Location <b>' + data.id.substring(0,10) + '...</b> is created by <font color="' + data.locationlist[0].color + '"> ' + data.locationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
 });
 
 socket.on('createevent', function(data) {
@@ -103,7 +103,7 @@ socket.on('createevent', function(data) {
 			}
 		}
 	}
-				$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is created by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+				$('#activitylog').append('<span class="logtext">Event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is created by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
 
 });
 
@@ -125,7 +125,7 @@ socket.on('updateevent', function(data) {
 			}
 		}
 	}
-				$('#activitylog').append('<span class="logtext">event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is updated by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+				$('#activitylog').append('<span class="logtext">Event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is updated by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
 });
 
 socket.on('deleteevent', function(data) {
@@ -133,7 +133,7 @@ socket.on('deleteevent', function(data) {
 		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
 		window.cacalendar.el.fullCalendar('removeEvents', data.id);
 	}
-	$('#activitylog').append('<span class="logtext">event <b>' + e[0].title.substring(0,10) + '...</b> is deleted. <font class="logtime">' + data.updated + '</font></span><br>');
+	$('#activitylog').append('<span class="logtext">Event <b>' + e[0].title.substring(0,10) + '...</b> is deleted. <font class="logtime">' + data.updated + '</font></span>');
 });
 
 socket.on('createrelation', function(data) {
@@ -174,7 +174,7 @@ socket.on('createrelation', function(data) {
 		}
 		people += data.relationlist[i].name + ' ';
 	}
-						$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is created by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+						$('#activitylog').append('<span class="logtext">Relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is created by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
 });
 
 socket.on('updaterelation', function(data) {
@@ -201,7 +201,7 @@ socket.on('updaterelation', function(data) {
 		people += data.relationlist[i].name + ' ';
 	}
 
-							$('#activitylog').append('<span class="logtext">relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is updated by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+							$('#activitylog').append('<span class="logtext">Relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is updated by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
 });
 
 socket.on('deleterelation', function(data) {
@@ -243,7 +243,7 @@ socket.on('createannotation', function(data) {
 		}
 	}
 
-	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is created by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+	$('#activitylog').append('<span class="logtext">Annotation <b>' + annotation.text.substring(0,10) + '...</b> is created by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
 });
 
 socket.on('updateannotation', function(data) {
@@ -277,7 +277,7 @@ socket.on('updateannotation', function(data) {
 		}
 	}
 
-	$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is updated by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span><br>');
+	$('#activitylog').append('<span class="logtext">Annotation <b>' + annotation.text.substring(0,10) + '...</b> is updated by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
 });
 
 // when someone deletes an annotation, the server push it to
@@ -291,7 +291,7 @@ socket.on('deleteannotation', function(data) {
 			if (i >= 0) {
 				var annotation = myAnnotator.plugins['Store'].annotations[i];
 
-					$('#activitylog').append('<span class="logtext">annotation <b>' + annotation.text.substring(0,10) + '...</b> is deleted.<font class="logtime">' + data.updated + '</font></span><br>');
+					$('#activitylog').append('<span class="logtext">Annotation <b>' + annotation.text.substring(0,10) + '...</b> is deleted.<font class="logtime">' + data.updated + '</font></span>');
 
 				var h, _k, _len2, _ref1;
 				_ref1 = annotation.highlights;

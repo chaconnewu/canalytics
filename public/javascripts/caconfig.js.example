@@ -1,1 +1,2 @@
-var SOCKER_SERVER = 'ca.ist.psu.edu:3000';
+var SOCKET_SERVER = 'http://localhost:3000';
+var NOTEPAD_SERVER = 'http://localhost:9090';

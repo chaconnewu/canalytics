@@ -1345,6 +1345,7 @@
         case 'select-location':
           window.fieldlocation = $('.field-location').selectize({
             hideSelected: true,
+            delimiter: '|',
             create: function(input, callback) {
               var that;
               that = this;

@@ -624,6 +624,9 @@ caCalendar.prototype.validateForm = function(el) {
 			_end = new Date(_end);
 			fm.elements['end'].value = format_date(_end);
 		}
+		if (_start.getHours() === undefined) {
+
+		}
 
 		//validate repeating events
 		var repeat = fm['rrepeat'].value;

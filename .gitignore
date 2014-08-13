@@ -9,3 +9,4 @@ Icon?
 dbpool.js
 *.log
 /public/javascripts/caconfig.js
+settings.json

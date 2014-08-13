@@ -83,6 +83,7 @@ exports.create = function(req, res) {
 					location: req.body.location,
 					lat: req.body.lat,
 					lng: req.body.lng,
+					creator: req.session.username,
 					ca_case_id: req.params.id
 				}, function(err, result) {
 					if(err) throw err;

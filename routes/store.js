@@ -159,7 +159,7 @@ exports.create = function(req, res) {
 			})
 		}, function(id, callback) {
 			if (req.body.relation && req.body.relation != '') {
-				cautility.createRelation(req.body.people, req.body.relation, req.body.ca_case_id, function(rid) {
+				cautility.createRelation(req.body.people, req.body.relation, req.body.ca_case_id, req.session.username, function(rid) {
 					pool.getConnection(function(err, conn) {
 						conn.query('UPDATE ca_annotation SET ca_relation_id = ' + rid + ' WHERE id = ' + id, function(err, result) {
 							if (err) throw err;

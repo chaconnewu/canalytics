@@ -1346,6 +1346,7 @@
           window.fieldlocation = $('.field-location').selectize({
             hideSelected: true,
             delimiter: '|',
+						options: window.top.calocation.location_options,
             create: function(input, callback) {
               var that;
               that = this;
@@ -1353,7 +1354,7 @@
                 var option, _k, _len2, _ref2;
                 if (loc_selected) {
                   window.top.calocation.location_list.push(loc_selected);
-                  window.top.calocation.location_list.push({
+                  window.top.calocation.location_options.push({
                     value: loc_selected,
                     text: loc_selected
                   });

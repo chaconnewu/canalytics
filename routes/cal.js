@@ -105,7 +105,7 @@ exports.create = function(req, res) {
 			})
 		}, function(id, callback) {
 			if (req.body.relation) {
-				cautility.createRelation(req.body.people, req.body.relation, req.body.ca_case_id, function(rid) {
+				cautility.createRelation(req.body.people, req.body.relation, req.body.ca_case_id, req.session.username, function(rid) {
 					msg.push({
 						operation: 'create',
 						resource: 'relation',

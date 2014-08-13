@@ -1,1 +1,1 @@
-var SOCKET_SERVER = 'localhost:3000';
+var SOCKET_SERVER = 'http://localhost:3000';

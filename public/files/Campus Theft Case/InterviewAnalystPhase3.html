@@ -1296,6 +1296,7 @@ table.MsoNormalTable
 	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
 	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
 		<script src="/javascripts/selectize.js"></script>
+		<script src="/javascripts/caconfig.js"></script>
 	<script src='/javascripts/annotator.js'></script>
 		<script src='/javascripts/annotator.filter.min.js'></script>
 			<script src='/javascripts/annotator.tags.min.js'></script>
@@ -1437,7 +1438,7 @@ This way they would have an alibi.</p>
 150%;mso-list:l0 level1 lfo1'><![if !supportLists]><span style='font-size:10.0pt;
 mso-bidi-font-size:12.0pt;line-height:150%;font-family:"Times New Roman";
 mso-fareast-font-family:"Times New Roman"'><span style='mso-list:Ignore'>2.<span
-style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span><![endif]>NicolasÕs
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span><![endif]>Nicolasï¿½s
 laptop is equally vulnerable to theft during the various activities that he
 engages in.<span style="mso-spacerun:yes">&nbsp; </span>For example, when he is
 engaging in sports, is in class, or working, he normally stores his laptop in
@@ -1532,7 +1533,7 @@ style="mso-spacerun:yes">&nbsp; </span>She also has dance class every Tuesday
 and Thursday from 3 to 5pm at the dance workshop on Fraser Street.</p>
 
 <p class=normal style='text-indent:.5in;line-height:150%'>Police obtained a
-warrant to search <span class=SpellE>VanesaÕs</span> home.<span
+warrant to search <span class=SpellE>Vanesaï¿½s</span> home.<span
 style="mso-spacerun:yes">&nbsp; </span>They did not find anything suspicious
 except for a drawing of the Willard ground floor with a room circled. </p>
 
@@ -1542,9 +1543,9 @@ except for a drawing of the Willard ground floor with a room circled. </p>
 
 <p class=normal style='text-indent:.5in;line-height:150%'>Police shadowed
 Kristin on Tuesday.<span style="mso-spacerun:yes">&nbsp; </span>They followed
-her to OttoÕs cafŽ in Kern building around 8am. Kristin worked there until 1pm
+her to Ottoï¿½s cafï¿½ in Kern building around 8am. Kristin worked there until 1pm
 that afternoon.<span style="mso-spacerun:yes">&nbsp; </span>Police interviewed
-KristinÕs coworker and found that Kristin works at OttoÕs cafŽ every Tuesday
+Kristinï¿½s coworker and found that Kristin works at Ottoï¿½s cafï¿½ every Tuesday
 from 8am to 1pm, every Thursday from 8am to 12pm and 1pm to 5pm.</p>
 
 <p class=normal style='text-indent:.5in;line-height:150%'>In addition, every
@@ -1567,12 +1568,13 @@ Wednesday from 10am to 12pm.</p>
 <p class=normal style='text-indent:.5in;line-height:150%'>Police verified all
 the information Sean provided.<span style="mso-spacerun:yes">&nbsp; </span>In
 addition, police found a floor map of the <span class=SpellE>Pattee</span>
-library in SeanÕs home during the interview.</p>
+library in Seanï¿½s home during the interview.</p>
 
 <p class=normal><o:p>&nbsp;</o:p></p>
 
 </div>
 <script>
+	document.domain = SERVER_DOMAIN;
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
 					 .annotator('addPlugin', 'Time')
@@ -1590,7 +1592,7 @@ library in SeanÕs home during the interview.</p>
 						var options = {
 							ca_doc_uuid: 'c24f648589beb63aedeb37a68834a487'
 						};
-						
+
 						MyAnnotator = $(document.body).data('annotator');
 					$(document.body).data('annotator').plugins['Store'].loadAnnotationsFromSearch(options);
 

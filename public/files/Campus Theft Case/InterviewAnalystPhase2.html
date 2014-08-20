@@ -1303,6 +1303,7 @@ table.MsoNormalTable
 	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
 	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
 		<script src="/javascripts/selectize.js"></script>
+		<script src="/javascripts/caconfig.js"></script>
 	<script src='/javascripts/annotator.js'></script>
 		<script src='/javascripts/annotator.filter.min.js'></script>
 			<script src='/javascripts/annotator.tags.min.js'></script>
@@ -1711,6 +1712,7 @@ dates mentioned in the <span class=GramE>interviews.</span></span></p>
 
 </div>
 <script>
+	document.domain = SERVER_DOMAIN;
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
 					 .annotator('addPlugin', 'Time')
@@ -1728,7 +1730,7 @@ dates mentioned in the <span class=GramE>interviews.</span></span></p>
 						var options = {
 							ca_doc_uuid: 'cd8273c1a63a5ec4adfb2c179e3f3341'
 						};
-						
+
 						MyAnnotator = $(document.body).data('annotator');
 					$(document.body).data('annotator').plugins['Store'].loadAnnotationsFromSearch(options);
 

@@ -1,11 +1,12 @@
 var pool = require('./dbpool.js');
 var async = require('async');
 
-exports.createRelation = function(people, relation, cid, callback) {
+exports.createRelation = function(people, relation, cid, usr, callback) {
 			pool.getConnection(function(err, conn) {
 				conn.query('INSERT INTO ca_relation SET ?', {
 					relation: relation,
 					ca_case_id: cid,
+					creator: usr,
 					updated: new Date()
 				}, function(err, result) {
 					if (err) {
@@ -23,6 +24,7 @@ exports.createRelation = function(people, relation, cid, callback) {
 					for (var i in people) {
 						values = values + "('" + people[i] + "', " + rid + "),";
 					}
+
 					if (values[values.length - 1] == ",") {
 						values = values.slice(0, -1);
 					}

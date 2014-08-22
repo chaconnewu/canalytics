@@ -26,16 +26,16 @@ exports.logs = function(log, res) {
     var time = new Date();
 
     if (!user) return;
-    // str = time + '\t' + user + '\t' + operation + '\t' + target + '\t' + activity + '\t' + data + '\n';
+    str = time + '\t' + user + '\t' + artifact + '\t' + operation + '\t' + data + '\n';
 
     // write to file
-    // fs.appendFile('activitylog.txt', str, function(err) {
-    //     if (err) {
-    //         console.log('Activity log failed:' + err);
-    //     }
-    // });
+    fs.appendFile('activity.log', str, function(err) {
+        if (err) {
+            console.log('Activity log failed:' + err);
+        }
+    });
     // write to database
-   pool.getConnection(function(err, conn) {
+    pool.getConnection(function(err, conn) {
        conn.query('SELECT id from ca_user WHERE username=' + conn.escape(user), function(err, results) {
            if (err) {
                console.warn("Activity log failed, no such user exists: ", + err);

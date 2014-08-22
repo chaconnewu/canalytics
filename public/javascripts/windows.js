@@ -95,6 +95,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 			break;
 		case 'notepad':
 			win.html("<iframe name='embed_readwrite' src='" + NOTEPAD_SERVER + "/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width='99%' height='98%'></iframe>");
+			win.data('artifact', 'notepad');
             _this.hideFilter(windowid);
 		default:
 			break;

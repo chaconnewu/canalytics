@@ -194,17 +194,17 @@ exports.update = function(req, res) {
 				id: req.params.id,
 				updated: new Date()
 			});
-			
+
 			pool.getConnection(function(err, conn) {
 				conn.query('SELECT rrepeat, editors, color FROM ca_event WHERE id = "' + req.params.id + '"', function(err, results) {
 					if (err) throw err;
-					
+
 					var editors = results[0].editors;
 					if(editors.indexOf(req.session.username) < 0) {
 						editors = editors + ',' + req.session.username;
 					}
 					qs.editors = editors;
-					
+
 					if (results[0].rrepeat) {
 						//it's a repeating event
 						if (req.body.rrepeat) {
@@ -261,7 +261,7 @@ exports.delete = function(req, res) {
 		res.redirect('/');
 	} else {
 		var msg = [];
-		
+
 		async.waterfall([
 
 		function(callback) {
@@ -275,14 +275,14 @@ exports.delete = function(req, res) {
 
 						cautility.deleteRelation(rid, function(err) {
 							if (err) throw err;
-							
+
 							msg.push({
 								operation: 'delete',
 								resource: 'relation',
 								id: id,
 								updated: new Date()
 							})
-							
+
 							conn.end();
 							callback(null);
 						})

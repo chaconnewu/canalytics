@@ -1296,6 +1296,7 @@ table.MsoNormalTable
 	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
 	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
 		<script src="/javascripts/selectize.js"></script>
+		<script src="/javascripts/caconfig.js"></script>
 	<script src='/javascripts/annotator.js'></script>
 		<script src='/javascripts/annotator.filter.min.js'></script>
 			<script src='/javascripts/annotator.tags.min.js'></script>
@@ -1355,7 +1356,7 @@ style='font-size:16.0pt;mso-bidi-font-size:12.0pt;color:white'> 2</span></p>
 information relevant to the case.<span style="mso-spacerun:yes">&nbsp;
 </span>Examples of this type of information include class schedules from the
 office of the University Registrar, bank statements, newspaper, or student
-activity information from Penn StateÕs Division of Student Affair. This type of
+activity information from Penn Stateï¿½s Division of Student Affair. This type of
 information is more likely to help you find out the <b style='mso-bidi-font-weight:
 normal'>location</b> of the suspects at the time of the thefts, which can be
 your unique contribution to the group discussion.</p>
@@ -1884,6 +1885,8 @@ activities that they found suspicious during September and October 2015.</p>
 
 </div>
 <script>
+document.domain = SERVER_DOMAIN;
+
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
 					 .annotator('addPlugin', 'Time')
@@ -1901,7 +1904,7 @@ activities that they found suspicious during September and October 2015.</p>
 						var options = {
 							ca_doc_uuid: '2c35de333c4d013d7686bc49058bc371'
 						};
-						
+
 						MyAnnotator = $(document.body).data('annotator');
 					$(document.body).data('annotator').plugins['Store'].loadAnnotationsFromSearch(options);
 

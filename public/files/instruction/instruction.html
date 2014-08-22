@@ -38,6 +38,7 @@
 	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
 	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
 		<script src="/javascripts/selectize.js"></script>
+		<script src="/javascripts/caconfig.js"></script>
 	<script src='/javascripts/annotator.js'></script>
 		<script src='/javascripts/annotator.filter.min.js'></script>
 			<script src='/javascripts/annotator.tags.min.js'></script>
@@ -73,10 +74,11 @@
 
 <ul>
 <li>When inputting date, please provide the full date and time (including year, month, day, hour, minute, second, and am/pm).</li>
-<li>When inputting location, do not include comma. If the location cannot be found, try to use the address instead of the place name in the parenthesis.</li>
+<li>When inputting location, if the location cannot be found, try using the address in the parenthesis instead of the place name. </li>
 </ul>
 
 <script>
+document.domain = SERVER_DOMAIN;
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
 					 .annotator('addPlugin', 'Time')

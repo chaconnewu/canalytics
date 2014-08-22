@@ -1120,6 +1120,7 @@ table.MsoNormalTable
 	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
 	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
 		<script src="/javascripts/selectize.js"></script>
+		<script src="/javascripts/caconfig.js"></script>
 	<script src='/javascripts/annotator.js'></script>
 		<script src='/javascripts/annotator.filter.min.js'></script>
 			<script src='/javascripts/annotator.tags.min.js'></script>
@@ -1747,6 +1748,7 @@ Roommate said Frank left home at 12pm.</p>
 </div>
 
 <script>
+	document.domain = SERVER_DOMAIN;
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
 					 .annotator('addPlugin', 'Time')

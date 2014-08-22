@@ -1128,6 +1128,7 @@ table.MsoNormalTable
 	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
 	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
 		<script src="/javascripts/selectize.js"></script>
+		<script src="/javascripts/caconfig.js"></script>
 	<script src='/javascripts/annotator.js'></script>
 		<script src='/javascripts/annotator.filter.min.js'></script>
 			<script src='/javascripts/annotator.tags.min.js'></script>
@@ -1175,7 +1176,7 @@ margin-bottom:12.0pt;margin-left:0in;text-align:center'><span style='font-size:
 information relevant to the case.<span style="mso-spacerun:yes">&nbsp;
 </span>Examples of this type of information include class schedules from the
 office of the University Registrar, bank statements, newspaper, or student
-activity information from Penn StateÕs Division of Student Affair. This type of
+activity information from Penn Stateï¿½s Division of Student Affair. This type of
 information is more likely to help you find out the location of the suspects at
 the time of the thefts, which can be your unique contribution to the group
 discussion.</p>
@@ -2129,7 +2130,7 @@ were in elementary school</p>
 
 <p class=normal><i style='mso-bidi-font-style:normal'>PSU ID Card Scan Records</i></p>
 
-<p class=normal><span class=SpellE>Tay</span> had a doctorÕs appointment at the
+<p class=normal><span class=SpellE>Tay</span> had a doctorï¿½s appointment at the
 Student Heath Center on Thursday, 9/3/2015 <span class=GramE>at<span
 style="mso-spacerun:yes">&nbsp; </span>3:30</span> pm</p>
 
@@ -2145,7 +2146,7 @@ at 11am</p>
 
 <p class=normal>Brandon has previously scheduled a phone to teleconference with
 Greg &amp; Luke where reason given was:<span style="mso-spacerun:yes">&nbsp;
-</span>Òto discuss the upcoming presidential debateÓ (Brandon is the candidate).</p>
+</span>ï¿½to discuss the upcoming presidential debateï¿½ (Brandon is the candidate).</p>
 
 <p class=normal><o:p>&nbsp;</o:p></p>
 
@@ -2160,6 +2161,8 @@ Ave. on 10/5/2015 at 2:55 pm</p>
 
 </div>
 <script>
+document.domain = SERVER_DOMAIN;
+
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
 					 .annotator('addPlugin', 'Time')
@@ -2177,7 +2180,7 @@ Ave. on 10/5/2015 at 2:55 pm</p>
 						var options = {
 							ca_doc_uuid: 'c3459035ee43dbcd1c3c48946efbb865'
 						};
-						
+
 						MyAnnotator = $(document.body).data('annotator');
 					$(document.body).data('annotator').plugins['Store'].loadAnnotationsFromSearch(options);
 

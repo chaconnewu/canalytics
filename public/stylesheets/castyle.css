@@ -340,6 +340,13 @@ label {
 
 #activitylog {
 	overflow-y: scroll;
+    height: 50%;
+}
+
+#activitylog .logtext {
+    margin-left: 5px;
+    margin-bottom: 5px;
+    display: block;
 }
 
 .logtime {

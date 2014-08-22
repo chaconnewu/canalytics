@@ -1305,6 +1305,7 @@ table.MsoNormalTable
 	<script src="/javascripts/jquery-ui-timepicker-addon.js"></script>
 	<script src="/javascripts/jquery-ui-sliderAccess.js"></script>
 		<script src="/javascripts/selectize.js"></script>
+		<script src="/javascripts/caconfig.js"></script>
 	<script src='/javascripts/annotator.js'></script>
 		<script src='/javascripts/annotator.filter.min.js'></script>
 			<script src='/javascripts/annotator.tags.min.js'></script>
@@ -2123,6 +2124,8 @@ has Independent Study in the Thomas building from 12pm to 3pm every Thursday. </
 
 </div>
 <script>
+document.domain = SERVER_DOMAIN;
+
 	$(document.body).annotator()
 					 .annotator('addPlugin', 'Filter')
 					 .annotator('addPlugin', 'Time')
@@ -2140,7 +2143,7 @@ has Independent Study in the Thomas building from 12pm to 3pm every Thursday. </
 						var options = {
 							ca_doc_uuid: '489539c149b4dda5b58190ab5da1e09b'
 						};
-						
+
 						MyAnnotator = $(document.body).data('annotator');
 					$(document.body).data('annotator').plugins['Store'].loadAnnotationsFromSearch(options);
 

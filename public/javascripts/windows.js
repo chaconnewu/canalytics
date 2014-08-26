@@ -104,7 +104,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 
     calog({
         operation: 'open artifact',
-		artifact: type,
+		artifact: win.data('artifact'),
 		data: JSON.stringify({ window_id: windowid, link: href })
     });
 

@@ -32,7 +32,7 @@ caMap.prototype.newMarker = function(param) {
 	google.maps.event.addListener(marker, 'mouseover', function() {
 		calog({
 			operation: 'show location info',
-			activity: 'map',
+			artifact: 'map',
 			data: JSON.stringify({ location: marker.getTitle() })
 		});
 		ajax_request('/maps/location/' + encodeURIComponent(marker.getTitle()), 'GET', "ca_case_id=" + ca_case_id, function(infos) {

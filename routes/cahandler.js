@@ -116,10 +116,16 @@ exports.filter = function(req, res) {
 			condition += relations;
 			condition += ' AND ';
 		}
-		if(req.query.time_from&&req.query.time_to){
-			condition += 'STR_TO_DATE(start, "%Y-%m-%dT%k:%i") > STR_TO_DATE("' + req.query.time_from + '", "%Y-%m-%dT%k:%i") AND STR_TO_DATE(end, "%Y-%m-%dT%k:%i") < STR_TO_DATE("' + req.query.time_to + '", "%Y-%m-%dT%k:%i")';
+		if(req.query.time_from)
+			condition += 'STR_TO_DATE(start, "%Y-%m-%dT%k:%i") > STR_TO_DATE("' + req.query.time_from + '", "%Y-%m-%dT%k:%i")';
+			condition += ' AND ';
+
+		if (req.query.time_to){
+			condition += 'STR_TO_DATE(end, "%Y-%m-%dT%k:%i") < STR_TO_DATE("' + req.query.time_to + '", "%Y-%m-%dT%k:%i")';
 			condition += ' AND ';
 		}
+
+		condition = condition.substring(0, condition.length-5); // substract the last ' AND '
 
 		query += condition;
 		query = query.substring(0, query.length-5);

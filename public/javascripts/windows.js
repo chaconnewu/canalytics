@@ -64,14 +64,14 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 				style: "border:0;width:100%;height:99%;",
 			}).appendTo(win);
 			win.data('artifact', 'doc');
-            // _this.createFilter(windowid);
-            _this.hideFilter(windowid);
+            _this.createFilter(windowid);
+            // _this.hideFilter(windowid);
 			break;
 		case 'map':
 			$.get(href, function(data) {
 				camap = new caMap(win, data);
-				// _this.createFilter(windowid);
-	            _this.hideFilter(windowid);
+				_this.createFilter(windowid);
+	            // _this.hideFilter(windowid);
 			})
 			break;
 		case 'cal':
@@ -82,15 +82,15 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
                     month: 7,
                     date: 10
 				});
-				// _this.createFilter(windowid);
-	            _this.hideFilter(windowid);
+				_this.createFilter(windowid);
+	            // _this.hideFilter(windowid);
 			})
 			break;
 		case 'graph':
 			$.get(href, function(data) {
 				cagraph = new caGraph(win, data);
-				// _this.createFilter(windowid);
-	            _this.hideFilter(windowid);
+				_this.createFilter(windowid);
+	            // _this.hideFilter(windowid);
 			})
 			break;
 		case 'notepad':
@@ -285,16 +285,16 @@ caWindows.createFilter = function(windowid) {
 	$('<span>Filter:</span>').appendTo(filterbar);
 		var apply_btn = $('<button type="button" style="margin: 20px; float: right">Apply</button><br><br>').appendTo(filterbar);
 	var location_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_location" value="check_location">').appendTo(location_div);
+	// $('<input type="checkbox" name="check_location" value="check_location">').appendTo(location_div);
 	var location_select = $('<select id="filterlocation" multiple placeholder="Select locations..." tabindex="6"/>').appendTo(location_div);
 	var person_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_person" value="check_person">').appendTo(person_div);
+	// $('<input type="checkbox" name="check_person" value="check_person">').appendTo(person_div);
 	var person_select = $('<select name="people" multiple placeholder="Select people..." tabindex="6"/>').appendTo(person_div);
 	var relation_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_relation" value="check_relation">').appendTo(relation_div);
+	// $('<input type="checkbox" name="check_relation" value="check_relation">').appendTo(relation_div);
 	var relation_select = $('<select name="relation" multiple placeholder="Select relations..." tabindex="6"/>').appendTo(relation_div);
 	var time_div = $('<div />').appendTo(filterbar);
-	$('<input type="checkbox" name="check_time" value="check_time"><br>').appendTo(time_div);
+	// $('<input type="checkbox" name="check_time" value="check_time"><br>').appendTo(time_div);
 	var div = $('<div />').appendTo(time_div);
 	var time_from = $('<span>From: </span><input id="time_from" type="datetime-local" name="from" /><br>').appendTo(div);
 	var time_to = $('<span>To: </span><input id="time_to" type="datetime-local" name="to" />').appendTo(div);
@@ -351,19 +351,19 @@ caWindows.createFilter = function(windowid) {
 	apply_btn.click(function(){
 		var _this = this;
 		data.ca_case_id = window.ca_case_id;
-		if($('input[name="check_location"]').is(':checked')){
+		// if($('input[name="check_location"]').is(':checked')){
 			data.location_select = location_select.val();
-		}
-		if($('input[name="check_person"]').is(':checked')){
+		// }
+		// if($('input[name="check_person"]').is(':checked')){
 			data.person_select = person_select.val();
-		}
-		if($('input[name="check_relation"]').is(':checked')){
+		// }
+		// if($('input[name="check_relation"]').is(':checked')){
 			data.relation_select = relation_select.val();
-		}
-		if($('input[name="check_time"]').is(':checked')){
+		// }
+		// if($('input[name="check_time"]').is(':checked')){
 			data.time_from = $('#time_from').val();
 			data.time_to = $('#time_to').val();
-		}
+		// }
         calog({
             operation: 'filter',
             artifact: $(_this).parents('.cabox').find('.cawindow').data('artifact'),

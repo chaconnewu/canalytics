@@ -64,8 +64,8 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 				style: "border:0;width:100%;height:99%;",
 			}).appendTo(win);
 			win.data('artifact', 'doc');
-            _this.createFilter(windowid);
-            // _this.hideFilter(windowid);
+            // _this.createFilter(windowid);
+            _this.hideFilter(windowid);
 			break;
 		case 'map':
 			$.get(href, function(data) {

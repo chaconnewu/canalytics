@@ -74,11 +74,6 @@
     Store.prototype.annotationCreated = function(annotation) {
       var _this = this;
       annotation.color = window.top.usercolor;
-      window.top.calog({
-          operation: 'create annotation',
-          artifact: 'doc',
-          data: JSON.stringify(this._dataFor(annotation))
-      });
       if (__indexOf.call(this.annotations, annotation) < 0) {
         this.registerAnnotation(annotation);
         annotation.ca_case_id = window.top.ca_case_id;
@@ -88,6 +83,11 @@
           }
           $.extend(annotation, {
             id: data.id
+          });
+          window.top.calog({
+              operation: 'create annotation',
+              artifact: 'doc',
+              data: JSON.stringify({id: data.id})
           });
 
           return _this.updateAnnotation(annotation, data);
@@ -102,7 +102,7 @@
       window.top.calog({
           operation: 'update annotation',
           artifact: 'doc',
-          data: JSON.stringify(this._dataFor(annotation))
+          data: JSON.stringify({id: annotation.id})
       });
       if (__indexOf.call(this.annotations, annotation) >= 0) {
         return this._apiRequest('update', annotation, (function(data) {
@@ -116,7 +116,7 @@
       window.top.calog({
           operation: 'delete annotation',
           artifact: 'doc',
-          data: JSON.stringify(this._dataFor(annotation))
+          data: JSON.stringify({id: annotation.id})
       });
       if (__indexOf.call(this.annotations, annotation) >= 0) {
         return this._apiRequest('destroy', annotation, (function(data) {

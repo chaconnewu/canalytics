@@ -9,7 +9,7 @@ exports.readall = function(req, res) {
 			if(err){
 				conn.end();
 			}else{
-				var query = conn.query('SELECT * FROM ca_location WHERE ca_case_id = ' + req.params.id, 
+				var query = conn.query('SELECT * FROM ca_location WHERE ca_case_id = ' + req.params.id,
 				function(err, result){
 					if(err) throw err;
 					conn.end();
@@ -87,11 +87,10 @@ exports.create = function(req, res) {
 					ca_case_id: req.params.id
 				}, function(err, result) {
 					if(err) throw err;
-					
 					conn.end();
-					res.send('Success');
-				})
+					res.send(result);
+				});
 			}
-		})
+		});
 	}
-}
+};

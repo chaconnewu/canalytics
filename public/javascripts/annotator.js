@@ -1379,7 +1379,7 @@
                   window.top.calog({
                       operation: 'create location',
                       artifact: 'doc',
-                      data: JSON.stringify({ location: loc_selected })
+                      data: JSON.stringify({ id: loc_selected })
                   });
                   return callback({
                     value: loc_selected,
@@ -1418,7 +1418,7 @@
               window.top.calog({
                   operation: 'create people',
                   artifact: 'doc',
-                  data: JSON.stringify({ people: input })
+                  data: JSON.stringify({ id: input })
               });
               return {
                 value: input,
@@ -1453,7 +1453,7 @@
               window.top.calog({
                   operation: 'create relation',
                   artifact: 'doc',
-                  data: JSON.stringify({ relation: input })
+                  data: JSON.stringify({ id: input })
               });
               return {
                 value: input,

@@ -73,7 +73,7 @@ caCalendar.prototype.setupDropDownList = function() {
 					window.top.calog({
 						operation: 'create location',
 						artifact: 'calendar',
-						data: JSON.stringify({ location: loc_selected })
+						data: JSON.stringify({ id: loc_selected })
 					});
 					callback({
 						value: loc_selected,
@@ -112,7 +112,7 @@ caCalendar.prototype.setupDropDownList = function() {
 			window.top.calog({
 				operation: 'create people',
 				artifact: 'calendar',
-				data: JSON.stringify({ people: input })
+				data: JSON.stringify({ id: input })
 			});
 			return {
 				value: input,
@@ -143,7 +143,7 @@ caCalendar.prototype.setupDropDownList = function() {
 			window.top.calog({
 				operation: 'create relation',
 				artifact: 'calendar',
-				data: JSON.stringify({ relation: input })
+				data: JSON.stringify({ id: input })
 			});
 			return {
 				value: input,
@@ -266,11 +266,6 @@ caCalendar.prototype.setupEventEditor = function() {
 				$("#errmsg").html("").hide();
 				eventform[0].reset();
 				win.removeClass('editing');
-				calog({
-					operation: 'create event',
-					artifact: 'calendar',
-					data: JSON.stringify(params)
-				});
 				ajax_request('/calendars/events', 'POST', params, _this.updateEvent.bind(_this));
 			}
 		}
@@ -484,9 +479,9 @@ caCalendar.prototype.showEventEditor = function() {
 			$("#err").html('');
 
 			calog({
-				operation: 'to edit event',
+				operation: 'edit event',
 				artifact: 'calendar',
-				data: JSON.stringify({ event_id: calEvant.id })
+				data: JSON.stringify({ id: calEvant.id })
 			});
 			return false;
 		});
@@ -514,7 +509,7 @@ caCalendar.prototype.showEventEditor = function() {
 		$("#err").html('');
 
 		calog({
-			operation: 'to create event',
+			operation: 'show event editor',
 			artifact: 'calendar',
 			data: JSON.stringify({ date: date, allDay: allDay })
 		});
@@ -525,6 +520,13 @@ caCalendar.prototype.showEventEditor = function() {
 
 caCalendar.prototype.updateEvent = function(data) {
 	for (var i in data) {
+		if (data[i].operation === 'create' && data[i].resource === 'event') {
+			calog({
+				operation: 'create event',
+				artifact: 'calendar',
+				data: JSON.stringify({id: data[i].id})
+			});
+		}
 		socket.emit(data[i].operation + data[i].resource, {
 			room: window.ca_case_id,
 			id: data[i].id,

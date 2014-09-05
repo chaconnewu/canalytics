@@ -125,8 +125,6 @@ exports.filter = function(req, res) {
 			condition += ' AND ';
 		}
 
-		condition = condition.substring(0, condition.length-5); // substract the last ' AND '
-
 		query += condition;
 		query = query.substring(0, query.length-5);
 		console.log(query);
@@ -135,6 +133,7 @@ exports.filter = function(req, res) {
 				if(err) throw err;
 
 				conn.end();
+				console.log('filtered to %d results', results.length);
 				res.send(results);
 			})
 		})

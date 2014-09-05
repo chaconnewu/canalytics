@@ -24,7 +24,14 @@ function caGraph(el, data) {
 		if(data.relationlist.length > 0) this.load(data);
     // Make it all go
     this.update();
+
+    $.subscribe('resize', this.resize.bind(this));
 }
+
+caGraph.prototype.resize = function(e, width, height) {
+	this.svg.attr('width', width).attr('height', height);
+	this.force.size([width, height]);
+};
 
 // Add and remove elements on the graph object
 caGraph.prototype.addNode = function (id) {
@@ -49,13 +56,13 @@ caGraph.prototype.addLink = function (source, target, typeid, type, facts) {
 	if(this.nodePair[np]) {
 		this.nodePair[np][typeid] = {
 			type: type,
-			facts: facts
+			note: facts
 		};
 	} else {
 		this.nodePair[np] = {};
 		this.nodePair[np][typeid] = {
 			type: type,
-			facts: facts
+			note: facts
 		};
 		this.links.push({"source":this.findNode(source),"target":this.findNode(target)});
 	}
@@ -149,6 +156,7 @@ caGraph.prototype.update = function () {
             artifact: 'graph',
             data: JSON.stringify({ node: d.id })
         });
+				d.fixed = true;
     })
 
 
@@ -193,7 +201,9 @@ caGraph.prototype.update = function () {
         var str = '<ul>';
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
-                str += '<li><span class="tooltip_key">' + capitaliseFirstLetter(key) + ":</span>";
+								if (!parseInt(key)) { // if it is a number, it is id. Do not show
+	                str += '<li><span class="tooltip_key">' + capitaliseFirstLetter(key) + ":</span>";
+								}
                 if (Object.prototype.toString.call(obj[key]) === '[object Object]') {
                     str += formatTooltip(obj[key]);
                 } else {

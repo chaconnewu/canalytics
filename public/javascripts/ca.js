@@ -132,6 +132,27 @@ $(document).ready(function() {
 	dp.init(scheduler);*/
 });
 
+/*! Tiny Pub/Sub - v0.7.0 - 2013-01-29
+* https://github.com/cowboy/jquery-tiny-pubsub
+*/
+(function($) {
+
+  var o = $({});
+
+  $.subscribe = function() {
+    o.on.apply(o, arguments);
+  };
+
+  $.unsubscribe = function() {
+    o.off.apply(o, arguments);
+  };
+
+  $.publish = function() {
+    o.trigger.apply(o, arguments);
+  };
+
+}(jQuery));
+
 jQuery.fn.extend({
   slideShow: function() {
     return this.each(function() {

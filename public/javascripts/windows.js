@@ -236,6 +236,7 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 				artifact: win.data('artifact'),
 				data: JSON.stringify({size_to: [$(this).width(), $(this).height()]})
 			});
+			$.publish('resize', [$(this).width(), $(this).height()]);
 		}
 	});
 

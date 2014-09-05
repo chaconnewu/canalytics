@@ -102,7 +102,7 @@ exports.filter = function(req, res) {
 					condition += 'location = "' + req.query.location_select[i] + '" OR '
 				}
 				condition = condition.substring(0, condition.length-4);
-				condition += ') AND '
+				condition += ') AND ';
 		}
 		if(req.query.person_select){
 			condition += 'name IN ';
@@ -116,9 +116,10 @@ exports.filter = function(req, res) {
 			condition += relations;
 			condition += ' AND ';
 		}
-		if(req.query.time_from)
+		if(req.query.time_from) {
 			condition += 'STR_TO_DATE(start, "%Y-%m-%dT%k:%i") > STR_TO_DATE("' + req.query.time_from + '", "%Y-%m-%dT%k:%i")';
 			condition += ' AND ';
+		}
 
 		if (req.query.time_to){
 			condition += 'STR_TO_DATE(end, "%Y-%m-%dT%k:%i") < STR_TO_DATE("' + req.query.time_to + '", "%Y-%m-%dT%k:%i")';

@@ -208,7 +208,7 @@ caCalendar.prototype.setupEventEditor = function() {
 								calog({
 									operation: 'update event',
 									artifact: 'calendar',
-									data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+									data: JSON.stringify($.extend({id: _this.calEvent.id}, params))
 								});
 								ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
 									_this.calEvent = null;
@@ -227,7 +227,7 @@ caCalendar.prototype.setupEventEditor = function() {
 								calog({
 									operation: 'update event',
 									artifact: 'calendar',
-									data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+									data: JSON.stringify($.extend({id: _this.calEvent.id}, params))
 								});
 								ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
 									_this.calEvent = null;
@@ -250,7 +250,7 @@ caCalendar.prototype.setupEventEditor = function() {
 					calog({
 						operation: 'update event',
 						artifact: 'calendar',
-						data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+						data: JSON.stringify($.extend({id: _this.calEvent.id}, params))
 					});
 					ajax_request('/calendars/events/' + _this.calEvent.id, 'PUT', params, function(data) {
 						_this.calEvent = null;
@@ -312,7 +312,7 @@ caCalendar.prototype.setupEventEditor = function() {
 							calog({
 								operation: 'delete event',
 								artifact: 'calendar',
-								data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+								data: JSON.stringify($.extend({id: _this.calEvent.id}, params))
 							});
 							ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
 								_this.calEvent = null;
@@ -331,7 +331,7 @@ caCalendar.prototype.setupEventEditor = function() {
 							calog({
 								operation: 'delete event',
 								artifact: 'calendar',
-								data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+								data: JSON.stringify($.extend({id: _this.calEvent.id}, params))
 							});
 							ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
 								_this.calEvent = null;
@@ -354,7 +354,7 @@ caCalendar.prototype.setupEventEditor = function() {
 				calog({
 					operation: 'delete event',
 					artifact: 'calendar',
-					data: JSON.stringify($.extend({event_id: _this.calEvent.id}, params))
+					data: JSON.stringify($.extend({id: _this.calEvent.id}, params))
 				});
 				ajax_request('/calendars/events/' + _this.calEvent.id, 'DELETE', params, function(data) {
 					_this.calEvent = null;
@@ -587,7 +587,7 @@ caCalendar.prototype.showEvent = function(event, jsEvent, view) {
 	calog({
 		operation: 'show event',
 		artifact: 'calendar',
-		data: JSON.stringify({ event_id: event.id })
+		data: JSON.stringify({ id: event.id })
 	});
 
 
@@ -600,7 +600,7 @@ caCalendar.prototype.hideEvent = function(event, jsEvent, view) {
 	calog({
 		operation: 'hide event',
 		artifact: 'calendar',
-		data: JSON.stringify({ event_id: event.id })
+		data: JSON.stringify({ id: event.id })
 	});
 	return false;
 };

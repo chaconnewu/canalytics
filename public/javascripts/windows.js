@@ -96,17 +96,19 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 		case 'notepad':
 			win.html("<iframe name='embed_readwrite' src='" + NOTEPAD_SERVER + "/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width='99%' height='98%'></iframe>");
 			win.data('artifact', 'notepad');
+
             _this.hideFilter(windowid);
 		default:
 			break;
 		}
 	}
 
-    calog({
-        operation: 'open artifact',
+
+  calog({
+    operation: 'open artifact',
 		artifact: win.data('artifact'),
 		data: JSON.stringify({ window_id: windowid, link: href })
-    });
+  });
 
 	bringToTop(win.parents()[1]);
 
@@ -124,10 +126,11 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 			"top": y,
 			"width": width + 310,
 			"z-index": 1,
-            "visibility": "visible"
+      "visibility": "visible",
 		}
 	}).appendTo(this.parentdiv);
 	box.addClass("cabox");
+	// box.attr('tabindex', -1);
 
 	var header = $('<div/>', {
 		id: "header_" + windowid,
@@ -239,6 +242,20 @@ caWindows.createWindow = function(windowid, windowname, href, x, y, width, heigh
 			$.publish('resize', [$(this).width(), $(this).height()]);
 		}
 	});
+
+	// track if focused
+	// box.focusin(function() {
+	// 	calog({
+	// 		artifact: win.data('artifact'),
+	// 		operation: 'focus in artifact',
+	// 	});
+	// });
+	// box.focusout(function() {
+	// 	calog({
+	// 		artifact: win.data('artifact'),
+	// 		operation: 'focus out artifact'
+	// 	});
+	// });
 
 	//register event triggers
 	parker.click(function() {

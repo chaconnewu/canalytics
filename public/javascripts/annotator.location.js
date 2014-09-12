@@ -174,8 +174,9 @@
       var selectize;
       selectize = window.fieldlocation[0].selectize;
       selectize.clear();
-      if (annotation.ca_location_location) {
-        return selectize.addItem(annotation.ca_location_location);
+      var value = annotation.ca_location_location;
+      if (value) {
+        return selectize.addItem(value);
       }
     };
 

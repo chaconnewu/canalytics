@@ -50,6 +50,7 @@
           return false;
         }
         regex = /^([0]\d|[1][0-2])\/([0-2]\d|[3][0-1])\/([2][01]|[1][6-9])\d{2}(\s((([0]?[1-9]|1[0-2])(:|\.)[0-5][0-9]((:|\.)[0-5][0-9])?( )?(AM|am|aM|Am|PM|pm|pM|Pm))|(([0]?[0-9]|1[0-9]|2[0-3])(:|\.)[0-5][0-9]((:|\.)[0-5][0-9])?)))?$/;
+
         return regex.test(string);
       },
       stringifyTime: function(string) {
@@ -132,32 +133,33 @@
     };
 
     Time.prototype.updateFieldFrom = function(field, annotation) {
+      this.info = Annotator.searchInfo(annotation.highlights[0]);
       var value;
-      value = annotation.start;
+      value = annotation.start || this.info.from_date;
       return this.input1.val(value);
     };
 
     Time.prototype.updateFieldTo = function(field, annotation) {
       var value;
-      value = annotation.end;
+      value = annotation.end || this.info.to_date;
       return this.input2.val(value);
     };
 
     Time.prototype.updateFieldRepeat = function(field, annotation) {
       var value;
-      value = annotation.rrepeat;
+      value = annotation.rrepeat || this.info.repeat_every;
       return this.input3.val(value);
     };
 
     Time.prototype.updateFieldInterval = function(field, annotation) {
       var value;
-      value = annotation.interval;
+      value = annotation.interval || this.info.repeat_unit;
       return this.input4.val(value);
     };
 
     Time.prototype.updateFieldEndafter = function(field, annotation) {
       var value;
-      value = annotation.end_after;
+      value = annotation.end_after || this.info.end_after;
       return this.input5.val(value);
     };
 

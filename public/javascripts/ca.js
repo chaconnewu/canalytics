@@ -1,6 +1,8 @@
 // prevent Chrome from keeping off iframe from etherpad and etherpad table
 document.domain = SERVER_DOMAIN;
 
+
+
 //to be revised...
 getMarker = function(location) {
 		  for (var i=0; i<window.markers.length; i++) {

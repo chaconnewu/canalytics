@@ -1048,40 +1048,50 @@
     };
 
     Annotator.prototype.onAdderClick = function(event) {
-      var highlights, position, r, ranges;
+      var annotation, cancel, cleanup, position, save,
+      _this = this;
       if (event != null) {
-        event.preventDefault();
+          event.preventDefault();
       }
       position = this.adder.position();
       this.adder.hide();
-      if (this.selectedRanges && this.selectedRanges.length) {
-        ranges = (function() {
-          var _k, _len2, _ref1, _results;
-          _ref1 = this.selectedRanges;
-          _results = [];
-          for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
-            r = _ref1[_k];
-            _results.push(Range.sniff(r).normalize());
-          }
-          return _results;
-        }).call(this);
-        highlights = this.highlightRanges(ranges, 'annotator-hl annotator-hl-temporary');
-        this.editor.element.one('hide', function() {
-          var h, _k, _len2, _results;
-          _results = [];
-          for (_k = 0, _len2 = highlights.length; _k < _len2; _k++) {
-            h = highlights[_k];
-            _results.push($(h).replaceWith(h.childNodes));
-          }
-          return _results;
-        });
-      }
-      return this.showEditor(this.createAnnotation(), position);
+      annotation = this.setupAnnotation(this.createAnnotation());
+      $(annotation.highlights).addClass('annotator-hl-temporary');
+
+      save = function() {
+          cleanup();
+          $(annotation.highlights).removeClass('annotator-hl-temporary');
+          var tagcss = 'annotator-hl';
+          $(annotation.highlights).addClass(tagcss)
+          return _this.publish('annotationCreated', [annotation]);
+      };
+      cancel = function() {
+          cleanup();
+          return _this.deleteAnnotation(annotation);
+      };
+      cleanup = function() {
+          _this.unsubscribe('annotationEditorHidden', cancel);
+          return _this.unsubscribe('annotationEditorSubmit', save);
+      };
+      this.subscribe('annotationEditorHidden', cancel);
+      this.subscribe('annotationEditorSubmit', save);
+      return this.showEditor(annotation, position);
     };
 
     Annotator.prototype.onEditAnnotation = function(annotation) {
-      var offset;
+      var cleanup, offset, update,
+      _this = this;
       offset = this.viewer.element.position();
+      update = function() {
+          cleanup();
+          return _this.updateAnnotation(annotation);
+      };
+      cleanup = function() {
+          _this.unsubscribe('annotationEditorHidden', cleanup);
+          return _this.unsubscribe('annotationEditorSubmit', update);
+      };
+      this.subscribe('annotationEditorHidden', cleanup);
+      this.subscribe('annotationEditorSubmit', update);
       this.viewer.hide();
       return this.showEditor(annotation, offset);
     };
@@ -1130,6 +1140,38 @@
   Annotator.Range = Range;
 
   Annotator._t = _t;
+
+
+  // add by Dong
+  // customized for faster annotation for CAnalytics
+  Annotator.searchInfo = function(el) {
+    var info = {
+      from_date: '',
+      to_date: '',
+      repeat_every: '',
+      repeat_unit: '',
+      end_after: '',
+      location: '',
+      people: '',
+      relation: '',
+    };
+    if (! el) return info;
+
+    var $el = $(el);
+    var parents = $el.parents('span');
+    for (var key in info) {
+      // for each key, transverse parents until get the value
+      parents.each(function(i, p) {
+        var value = '';
+        var $p = $(p);
+        if (value = $p.data(key)) {
+          info[key] = value;
+          return false; // break the loop
+        }
+      });
+    }
+    return info;
+  };
 
   Annotator.supported = function() {
     return (function() {

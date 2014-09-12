@@ -147,13 +147,15 @@
       if (__indexOf.call(this.annotations, annotation) < 0) {
         console.error(Annotator._t("Trying to update unregistered annotation!"));
       }
-      for (_i = 0, _len = data.msg.length; _i < _len; _i++) {
-        msg = data.msg[_i];
-        window.top.socket.emit(msg.operation + msg.resource, {
-          room: window.top.case_case_id,
-          id: msg.id,
-          updated: msg.updated
-        });
+      if (data.msg) {
+        for (_i = 0, _len = data.msg.length; _i < _len; _i++) {
+          msg = data.msg[_i];
+          window.top.socket.emit(msg.operation + msg.resource, {
+            room: window.top.case_case_id,
+            id: msg.id,
+            updated: msg.updated
+          });
+        }
       }
       return $(annotation.highlights).data('annotation', annotation);
     };

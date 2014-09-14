@@ -78,8 +78,8 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 			$.get(href, function(data) {
 				cacalendar = new caCalendar(win, {
 					events: data,
-                    year: 2015,
-                    month: 7,
+                    year: 2014,
+                    month: 9,
                     date: 10
 				});
 				_this.createFilter(windowid);
@@ -94,7 +94,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 			})
 			break;
 		case 'notepad':
-			win.html("<iframe name='embed_readwrite' src='" + NOTEPAD_SERVER + "/p/campustheftcase?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width='99%' height='98%'></iframe>");
+			win.html("<iframe name='embed_readwrite' src='" + NOTEPAD_SERVER + "/p/campustheftcase" + ca_case_id + "?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false' width='99%' height='98%'></iframe>");
 			win.data('artifact', 'notepad');
 
             _this.hideFilter(windowid);

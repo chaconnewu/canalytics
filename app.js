@@ -56,11 +56,11 @@ app.post('/signup', index.signup);
 app.get('/mycases', cahandler.mycases);
 app.get('/mycase/*', cahandler.mycase);
 app.get('/store', store.information);
-app.get('/store/annotations', store.findall);
+app.get('/store/annotations/:ca_case_id', store.findall);
 app.post('/store/annotations', store.create);
 app.put('/store/annotations/:id', store.update);
 app.delete('/store/annotations/:id', store.delete);
-app.get('/store/search', store.search);
+app.get('/store/search/:ca_case_id', store.search);
 app.get('/calendars/:id', cal.readall);
 app.get('/calendars/search/:id', cal.search)
 app.post('/calendars/events', cal.create);

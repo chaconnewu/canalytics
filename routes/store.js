@@ -18,7 +18,8 @@ exports.findall = function(req, res) {
 				throw err;
 				conn.end();
 			} else {
-				conn.query("SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id", function(err, results) {
+				console.log(req.body)
+				conn.query("SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_annotation.ca_case_id = " + req.params.ca_case_id, function(err, results) {
 					var annotation_list = [];
 
 					if (err) throw err;
@@ -59,13 +60,15 @@ exports.search = function(req, res) {
 			} else {
 				var docid, limit, offset, q;
 
-				q = "SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id";
+				q = "SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id";
 				docid = (req.query['ca_doc_uuid'] != null) ? req.query['ca_doc_uuid'] : '*';
 				limit = (req.query['limit'] != null) ? req.query['limit'] : 999999999999999999;
 				offset = (req.query['offset'] != null) ? req.query['offset'] : 0;
 
 				if (req.query['ca_doc_uuid'] != null) {
-					q = q + " WHERE ca_doc_uuid = '" + docid + "'"
+					q = q + " WHERE ca_doc_uuid = '" + docid + "' AND ca_annotation.ca_case_id = " + req.params.ca_case_id;
+				} else {
+					q = q + " WHERE ca_annotation.ca_case_id = " + req.params.ca_case_id;
 				}
 
 				q += " GROUP BY id"
@@ -77,6 +80,7 @@ exports.search = function(req, res) {
 				if (limit != null && offset != null) {
 					q = q + " LIMIT " + limit + " OFFSET " + offset
 				}
+				console.log(q);
 
 				conn.query(q, function(err, results) {
 					var annotation_list = [],
@@ -144,7 +148,6 @@ exports.create = function(req, res) {
 			pool.getConnection(function(err, conn) {
 				console.log('qs is: ' + JSON.stringify(qs));
 				conn.query('INSERT INTO ca_annotation SET ?', qs, function(err, result) {
-					console.log('result is: ' + JSON.stringify(result));
 					msg.push({
 						operation: 'create',
 						resource: 'annotation',

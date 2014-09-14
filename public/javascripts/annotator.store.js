@@ -232,6 +232,9 @@
       replaceWith = id != null ? '/' + id : '';
       url = this.options.prefix || '/';
       url += this.options.urls[action];
+      if (action === 'search' || action === 'read') {
+        url += '/' + window.top.ca_case_id;
+      }
       url = url.replace(/\/:id/, replaceWith);
       return url;
     };

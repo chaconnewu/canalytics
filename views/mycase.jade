@@ -49,7 +49,8 @@ block content
 						ul#documents
 							- each doc in doclist
 								li
-									a(href='/files/Campus Theft Case/#{doc.title}.html', onclick="return caWindows.openWindow(this, '#{doc.uuid}', '#{doc.title}', 'annotation');") #{doc.title}
+									- var ca_case_title_clean = ca_case_title.split('-')[0]
+									a(href='/files/#{ca_case_title_clean}/#{doc.title}.html', onclick="return caWindows.openWindow(this, '#{doc.uuid}', '#{doc.title}', 'annotation');") #{doc.title}
 					li
 						a.heading(href='/maps/#{ca_case_id}', onclick="return caWindows.openWindow(this, 'map_#{ca_case_id}', '#{map}', 'map');") #{map}
 					li

@@ -78,7 +78,7 @@ caWindows.openWindow = function(link, windowid, windowname, type, width, height)
 			$.get(href, function(data) {
 				cacalendar = new caCalendar(win, {
 					events: data,
-                    year: 2014,
+                    year: 2015,
                     month: 9,
                     date: 10
 				});

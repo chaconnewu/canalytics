@@ -307,9 +307,9 @@
 
 .annotator-editor .annotator-item input,
 .annotator-editor .annotator-item textarea {
-	/*display: block;
-	min-width: 100%;*/
-	width: 75%;
+	/*display: block;*/
+	/*min-width: 100%;*/
+	width: 100%;
 	padding: 10px 8px;
 	border: none;
 	margin: 0;
@@ -320,6 +320,20 @@
 	-o-box-sizing: border-box;
 	box-sizing: border-box;
 	resize: none;
+}
+
+.annotator-editor .annotator-item input.modest {
+	width: 75%;
+}
+.annotator-editor .annotator-item input.small {
+	width: 40%;
+}
+
+.annotator-editor .annotator-item .selectize-control {
+	padding: 2px;
+}
+.annotator-editor .annotator-item .selectize-input {
+	padding: 3px;
 }
 
 .annotator-editor .annotator-item textarea::-webkit-scrollbar {

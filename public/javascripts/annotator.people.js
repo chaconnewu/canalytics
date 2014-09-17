@@ -59,13 +59,13 @@
       }
       this.field1 = this.annotator.editor.addField({
         type: 'select-people',
-        label: 'People...',
+        label: 'People involved',
         load: this.updateField1,
         submit: this.setAnnotationPeople
       });
       this.field2 = this.annotator.editor.addField({
         type: 'select-relation',
-        label: 'Relation...',
+        label: 'Relation between people...',
         load: this.updateField2,
         submit: this.setAnnotationRelation
       });

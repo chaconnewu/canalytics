@@ -842,9 +842,9 @@
       annotation.quote = annotation.quote.join(' / ');
       $(annotation.highlights).data('annotation', annotation);
       annotation.ca_doc_uuid = $('head meta[name="ID"]').attr('content');
-      if (fireEvents) {
-        this.publish('annotationCreated', [annotation]);
-      }
+      // if (fireEvents) {
+      //   this.publish('annotationCreated', [annotation]);
+      // }
       return annotation;
     };
 
@@ -968,11 +968,11 @@
 
     Annotator.prototype.onEditorSubmit = function(annotation) {
       this.publish('annotationEditorSubmit', [this.editor, annotation]);
-      if (annotation.ranges === void 0) {
-        return this.setupAnnotation(annotation);
-      } else {
-        return this.updateAnnotation(annotation);
-      }
+      // if (annotation.ranges === void 0) {
+      //   return this.setupAnnotation(annotation);
+      // } else {
+      //   return this.updateAnnotation(annotation);
+      // }
     };
 
     Annotator.prototype.showViewer = function(annotations, location) {
@@ -1158,7 +1158,9 @@
     if (! el) return info;
 
     var $el = $(el);
-    var parents = $el.parents('span');
+    var parents = $el.parents('.ann-trick');
+    if (!parents.length) return info;
+
     for (var key in info) {
       // for each key, transverse parents until get the value
       parents.each(function(i, p) {
@@ -1357,7 +1359,7 @@
           input = $('<input />');
           break;
         case 'datetime-local':
-          input = $('<input type="datetime-local" />');
+          input = $('<input type="datetime-local" min="2015-08-01T00:00:00" class="modest" autocomplete="on"/>');
           break;
         case 'select-interval':
           input = $('<select class="field-interval"><option value=""></option><option value="day(s)">day(s)</option><option value="week(s)">week(s)</option><option value="month(s)">month(s)</option></select>');

@@ -5,6 +5,11 @@
 .nodetext {
   pointer-events: none;
   font: 12px Arial;
+  font-weight: bold;
+}
+
+.linktext {
+  fill-opacity: .5;
 }
 
 .tooltip ul {

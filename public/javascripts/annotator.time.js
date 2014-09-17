@@ -104,7 +104,7 @@
       });
       this.field4 = this.annotator.editor.addField({
         type: 'select-interval',
-        label: '',
+        label: 'day, week, etc.',
         load: this.updateFieldInterval,
         submit: this.setAnnotationInterval
       });
@@ -136,7 +136,7 @@
       this.info = Annotator.searchInfo(annotation.highlights[0]);
       var value;
       value = annotation.start || this.info.from_date;
-      return this.input1.val(value);
+      if (value) return this.input1.val(value);
     };
 
     Time.prototype.updateFieldTo = function(field, annotation) {

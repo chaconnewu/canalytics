@@ -136,7 +136,7 @@
       this.info = Annotator.searchInfo(annotation.highlights[0]);
       var value;
       value = annotation.start || this.info.from_date;
-      if (value) return this.input1.val(value);
+      return this.input1.val(value);
     };
 
     Time.prototype.updateFieldTo = function(field, annotation) {

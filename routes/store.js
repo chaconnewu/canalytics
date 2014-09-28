@@ -121,7 +121,7 @@ exports.create = function(req, res) {
 	if (typeof req.session.username === "undefined") {
 		res.redirect('/');
 	} else {
-		var cols = ['text', 'quote', 'ca_location_location', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'ca_doc_uuid', 'ca_case_id', 'creator', 'editors', 'color'];
+		var cols = ['text', 'quote', 'ca_location_location', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'ca_doc_uuid', 'ca_case_id', 'creator', 'editors'];
 		req.body.creator = req.session.username;
 		req.body.editors = req.session.username;
 		var qs = {};
@@ -148,6 +148,7 @@ exports.create = function(req, res) {
 			pool.getConnection(function(err, conn) {
 				console.log('qs is: ' + JSON.stringify(qs));
 				conn.query('INSERT INTO ca_annotation SET ?', qs, function(err, result) {
+          if (err) console.error(err);
 					msg.push({
 						operation: 'create',
 						resource: 'annotation',
@@ -194,7 +195,8 @@ exports.create = function(req, res) {
 					ca_case_id: req.body.ca_case_id,
 					ca_location_location: req.body.ca_location_location,
 					ca_annotation_id: id,
-					ca_relation_id: rid
+					ca_relation_id: rid,
+          creator: req.session.username
 				};
 
 				cautility.createEvent(data, function(eid) {
@@ -203,7 +205,7 @@ exports.create = function(req, res) {
 						resource: 'event',
 						id: eid,
 						updated: new Date()
-					})
+					});
 					callback(null, eid, data);
 				});
 			} else {

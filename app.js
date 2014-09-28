@@ -233,6 +233,7 @@ io.sockets.on('connection', function(socket){
 	socket.on('unsubscribe', function(data){
 		unsubscribe(socket, data);
 	});
+
 });
 
 //hash object to save clients data,
@@ -273,6 +274,7 @@ function disconnect(socket){
 
 
 function createannotation(socket, data) {
+  console.error('create annotation');
 	pool.getConnection(function(err, conn) {
 		conn.query('SELECT ca_annotation.id AS id, ca_annotation.text AS text, ca_annotation.quote AS quote, ca_annotation.range_start AS range_start, ca_annotation.range_end AS range_end, ca_annotation.startOffset AS startOffset, ca_annotation.endOffset AS endOffset, ca_annotation.start AS start, ca_annotation.end AS end, ca_annotation.rrepeat AS rrepeat, ca_annotation.rinterval AS rinterval, ca_annotation.end_after AS end_after, ca_annotation.ca_location_location AS ca_location_location, ca_annotation.ca_doc_uuid AS ca_doc_uuid, ca_annotation.ca_case_id AS ca_case_id, GROUP_CONCAT(ca_person.name) as people, ca_relation.relation AS relation, ca_annotation.color AS color, ca_annotation.creator AS creator FROM ca_annotation LEFT JOIN ca_relation ON ca_annotation.ca_relation_id = ca_relation.id LEFT JOIN ca_person ON ca_relation.id = ca_person.ca_relation_id WHERE ca_annotation.id = ' + data.id, function(err, result) {
 			if(err) throw err;

@@ -54,7 +54,7 @@ exports.deleteRelation = function(rid, callback) {
 
 exports.createEvent = function(data, callback) {
 	var qs = {};
-	var cols = ['title', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'rindex', 'ca_case_id', 'ca_location_location', 'ca_annotation_id', 'ca_relation_id', 'creator', 'editors', 'color'];
+	var cols = ['title', 'start', 'end', 'rrepeat', 'rinterval', 'end_after', 'rindex', 'ca_case_id', 'ca_location_location', 'ca_annotation_id', 'ca_relation_id', 'creator', 'editors'];
 
 	Object.keys(data).forEach(function(key) {
 		if (cols.indexOf(key) > -1) {
@@ -63,6 +63,7 @@ exports.createEvent = function(data, callback) {
 			}
 		}
 	});
+  console.log('create event sql: ', qs);
 
 	pool.getConnection(function(err, conn) {
 		conn.query('INSERT INTO ca_event SET ?', qs, function(err, result) {

@@ -347,6 +347,7 @@ label {
     margin-left: 5px;
     margin-bottom: 5px;
     display: block;
+    cursor: pointer;
 }
 
 .logtime {

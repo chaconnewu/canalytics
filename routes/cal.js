@@ -94,6 +94,7 @@ exports.create = function(req, res) {
 		function(callback) {
 			req.body.creator = req.session.username;
 			req.body.editors = req.session.username;
+      console.log('create event req body: ', req.body);
 			cautility.createEvent(req.body, function(id) {
 				msg.push({
 					operation: 'create',

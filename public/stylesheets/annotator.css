@@ -48,6 +48,10 @@
 	text-decoration: none;
 }
 
+.annotator-hl.active {
+	background: rgba(255, 155, 10, 1);
+}
+
 .annotator-hl-temporary {
 	background: rgba(0, 124, 255, 0.3);
 }

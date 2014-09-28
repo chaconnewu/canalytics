@@ -1,4 +1,5 @@
 clientId = null, nickname = null, currentRoom = null, socket = io.connect(SOCKET_SERVER);
+var usercolor = {};
 
 // when the connection is made, the server emiting
 // the 'connect' event
@@ -82,7 +83,7 @@ socket.on('createlocation', function(data) {
 		}
 	}
 
-	addLog('<span class="logtext">Location <b>' + data.id.substring(0,10) + '...</b> is created by <font color="' + data.locationlist[0].color + '"> ' + data.locationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
+	addLog('<span class="logtext">Location <font color="black">' + data.id.substring(0,10) + '...</font> is created by '  + data.locationlist[0].creator + '<font class="logtime">' + data.updated + '</font></span>', data.locationlist[0].creator);
 });
 
 socket.on('createevent', function(data) {
@@ -103,7 +104,7 @@ socket.on('createevent', function(data) {
 			}
 		}
 	}
-	addLog('<span class="logtext">Event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is created by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
+	addLog('<span class="logtext">Event <font color="black">' + data.eventlist[0].title.substring(0,10) + '...</font> is created by ' + results[0].creator + '.<font class="logtime">' + data.updated + '</font></span>', results[0].creator);
 
 });
 
@@ -125,14 +126,14 @@ socket.on('updateevent', function(data) {
 			}
 		}
 	}
-	addLog('<span class="logtext">Event <b>' + data.eventlist[0].title.substring(0,10) + '...</b> is updated by <font color="' + results[0].color + '">' + results[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
+	addLog('<span class="logtext">Event <font color="black">' + data.eventlist[0].title.substring(0,10) + '...</font> is updated by ' + results[0].creator + '. <font class="logtime">' + data.updated + '</font></span>', results[0].creator);
 });
 
 socket.on('deleteevent', function(data) {
 	if (window.cacalendar) {
 		var e = window.cacalendar.el.fullCalendar('clientEvents', data.id);
 		window.cacalendar.el.fullCalendar('removeEvents', data.id);
-		addLog('<span class="logtext">Event <b>' + e[0].title.substring(0,10) + '...</b> is deleted. <font class="logtime">' + data.updated + '</font></span>');
+		addLog('<span class="logtext">Event <font color="black">' + e[0].title.substring(0,10) + '...</font> is deleted. <font class="logtime">' + data.updated + '</font></span>');
 	}
 });
 
@@ -175,7 +176,7 @@ socket.on('createrelation', function(data) {
 		people.push(data.relationlist[i].name);
 	}
 	if (people.length > 1) { // only show the log if the relation is for more than one person
-		addLog('<span class="logtext">Relation <b>' + data.relationlist[0].relation + '</b> among <b>' + people.join(' </b> and <b>') + '</b> is created by <font color="' + data.relationlist[0].color + '"> <b>' + data.relationlist[0].creator + '</b></font>. <font class="logtime">' + data.updated + '</font></span>');
+  addLog('<span class="logtext">Relation <font color="black">' + data.relationlist[0].relation + 'among ' + people.join(' </b> and <b>') + '</b> is created by ' + data.relationlist[0].creator + '. <font class="logtime">' + data.updated + '</font></span>', data.relationlist[0].creator);
 	}
 });
 
@@ -203,7 +204,7 @@ socket.on('updaterelation', function(data) {
 		people += data.relationlist[i].name + ' ';
 	}
 
-	addLog('<span class="logtext">Relation <b>' + data.relationlist[0].relation + '</b> among ' + people + ' is updated by <font color="' + data.relationlist[0].color + '"> ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
+	addLog('<span class="logtext">Relation <font color="black">' + data.relationlist[0].relation + ' among ' + people + ' is updated by ' + data.relationlist[0].creator + '</font>. <font class="logtime">' + data.updated + '</font></span>', data.relationlist[0].creator);
 });
 
 socket.on('deleterelation', function(data) {
@@ -245,7 +246,8 @@ socket.on('createannotation', function(data) {
 		}
 	}
 
-	addLog('<span class="logtext">Annotation <b>' + annotation.text.substring(0,10) + '...</b> is created by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
+	var log = addLog('<span class="logtext annotation">Annotation <font color="black">' + annotation.text.substring(0,10) + '...</font> is created by ' + annotation.creator + '. <font class="logtime">' + data.updated + '</font></span>', annotation.creator);
+  log.data('annotation', annotation);
 });
 
 socket.on('updateannotation', function(data) {
@@ -279,7 +281,8 @@ socket.on('updateannotation', function(data) {
 		}
 	}
 
-	addLog('<span class="logtext">Annotation <b>' + annotation.text.substring(0,10) + '...</b> is updated by <font color="' + annotation.color + '">' + annotation.creator + '</font>. <font class="logtime">' + data.updated + '</font></span>');
+	var log = addLog('<span class="logtext">Annotation <font color="black">' + annotation.text.substring(0,10) + '...</font> is updated by ' + annotation.creator + '. <font class="logtime">' + data.updated + '</font></span>', annotation.creator);
+  log.data('annotation', annotation);
 });
 
 // when someone deletes an annotation, the server push it to
@@ -293,7 +296,7 @@ socket.on('deleteannotation', function(data) {
 			if (i >= 0) {
 				var annotation = myAnnotator.plugins['Store'].annotations[i];
 
-					addLog('<span class="logtext">Annotation <b>' + annotation.text.substring(0,10) + '...</b> is deleted.<font class="logtime">' + data.updated + '</font></span>');
+					addLog('<span class="logtext">Annotation <font color="black">' + annotation.text.substring(0,10) + '...</font> is deleted.<font class="logtime">' + data.updated + '</font></span>');
 
 				var h, _k, _len2, _ref1;
 				_ref1 = annotation.highlights;
@@ -376,6 +379,12 @@ function removeRoom(name, announce) {
 // add a client to the clients list
 
 function addClient(client, announce, isMe) {
+  if (!usercolor[client.username]) {
+    // generate random color, taken from stackoverlow
+    // http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
+    var color = "#"+((1<<24)*Math.random()|0).toString(16);
+    usercolor[client.username] = color;
+  }
 	// if this is our client, mark him with color
 	console.log(client);
 	if (isMe) {
@@ -440,6 +449,56 @@ function __indexOf(item, items) {
 	return -1;
 };
 
-function addLog(str) {
-	$(str).hide().prependTo($('#activitylog')).slideDown();
+function addLog(str, user) {
+  return $(str).css('color', usercolor[user])
+    .hide() // to animate the prepend, hide the element first
+    .prependTo($('#activitylog'))
+    .slideDown();
 }
+
+$(function() {
+  $('#activitylog').on('click', '.logtext', function() {
+    var annotation = $(this).data('annotation');
+    if (annotation) {
+      var window_id = "#iframe_" + annotation.ca_doc_uuid;
+      var ifm = $(window_id).get(0);
+      if (!ifm) {
+        // the window is not opened yet
+        $('ul#documents').find('a').each(function(i, a) {
+          a = $(a);
+          if (a.data('uuid') ===  annotation.ca_doc_uuid) {
+            var href = a.attr('href');
+            caWindows.openWindow(href, annotation.ca_doc_uuid, a.data('title'), 'annotation');
+            ifm = $(window_id).get(0);
+            $(ifm.contentWindow).load(function() {
+              jump2annotation();
+            });
+            return false;
+          }
+        });
+      } else {
+        bringToTop($(ifm).parents('.cabox'));
+        jump2annotation();
+      }
+
+
+
+      function jump2annotation() {
+        var myAnnotator = ifm.contentWindow.MyAnnotator;
+        if (myAnnotator) {
+          var i = __indexOf(annotation, myAnnotator.plugins['Store'].annotations);
+          if (i > -1) {
+           annotation = myAnnotator.plugins['Store'].annotations[i];
+            var highlight = $(annotation.highlights[0]);
+            if (highlight) {
+              highlight.addClass('active');
+              $('body', ifm.contentDocument).animate({
+                scrollTop: highlight.offset().top - 30
+              });
+            }
+          }
+        }
+      }
+    }
+  });
+})

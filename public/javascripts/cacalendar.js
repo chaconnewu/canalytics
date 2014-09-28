@@ -179,7 +179,6 @@ caCalendar.prototype.setupEventEditor = function() {
 			$("#errmsg").html(err).show();
 		} else {
 			var params = eventform.serialize();
-			params += "&color=" + window.usercolor;
 			if (_this.calEvent) {
 				//existing event
 				if (_this.calEvent.rrepeat) {
@@ -481,7 +480,7 @@ caCalendar.prototype.showEventEditor = function() {
 			calog({
 				operation: 'edit event',
 				artifact: 'calendar',
-				data: JSON.stringify({ id: calEvant.id })
+				data: JSON.stringify({ id: calEvent.id })
 			});
 			return false;
 		});
